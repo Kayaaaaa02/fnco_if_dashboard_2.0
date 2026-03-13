@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FNCO Campaign Builder - Product Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Noto Sans KR', -apple-system, sans-serif;
+    background: #f8fafc;
+    color: #1e293b;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Global Layout ── */
+  .page {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  .slide {
+    padding: 60px 0 40px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .slide:last-of-type { border-bottom: none; }
+
+  /* ── Typography ── */
+  .slide-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 6px;
+    background: #eef2ff;
+    color: #4338ca;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  .slide h2 {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: -0.5px;
+    margin-bottom: 6px;
+  }
+  .slide-subtitle {
+    font-size: 15px;
+    color: #64748b;
+    margin-bottom: 32px;
+  }
+  h3 {
+    font-size: 17px;
+    font-weight: 800;
+    margin-bottom: 8px;
+  }
+
+  /* ── Footer ── */
+  .slide-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 24px;
+    margin-top: 40px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+
+  /* ── Cards ── */
+  .card {
+    border-radius: 14px;
+    border: 1.5px solid #e2e8f0;
+    padding: 20px 24px;
+    background: #fff;
+  }
+  .metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 32px; }
+  .metric-card {
+    border-radius: 14px;
+    border: 2px solid;
+    padding: 24px;
+    text-align: center;
+  }
+  .metric-card .label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .metric-card .value {
+    font-size: 40px;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+  .metric-card .sub {
+    font-size: 13px;
+    color: #94a3b8;
+    margin-top: 4px;
+  }
+
+  /* ── 2-Col ── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* ── Phase Header ── */
+  .phase-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .phase-num {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 900;
+    color: #fff;
+    flex-shrink: 0;
+  }
+  .phase-header h3 { margin-bottom: 0; }
+
+  /* ── Data Table ── */
+  .data-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e8eaef;
+  }
+  .data-table tr { border-bottom: 1px solid #f1f5f9; }
+  .data-table tr:last-child { border-bottom: none; }
+  .data-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    vertical-align: top;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table td:first-child {
+    font-weight: 700;
+    white-space: nowrap;
+    width: 140px;
+    color: #334155;
+  }
+  .data-table td:last-child { color: #64748b; }
+
+  /* ── Segment Cards ── */
+  .segment-card {
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    border-top: 3px solid;
+    padding: 20px 24px;
+    background: #fff;
+  }
+  .segment-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+  .segment-card .role { font-size: 15px; font-weight: 800; margin-bottom: 10px; }
+  .segment-card .quote {
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  /* ── Pipeline ── */
+  .pipeline {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 16px 0;
+    margin-bottom: 32px;
+  }
+  .pipeline-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 120px;
+    flex: 1;
+  }
+  .pipeline-icon {
+    width: 48px; height: 48px;
+    border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 900;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  .pipeline-item .name {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #1e293b;
+  }
+  .pipeline-item .desc {
+    font-size: 10px;
+    color: #94a3b8;
+    line-height: 1.5;
+  }
+  .pipeline-arrow {
+    display: flex;
+    align-items: center;
+    padding-top: 14px;
+    color: #cbd5e1;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ── Flywheel ── */
+  .flywheel-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+  .flywheel-card {
+    border-radius: 14px;
+    border: 2px solid;
+    padding: 20px;
+    position: relative;
+  }
+  .flywheel-card .emoji { font-size: 24px; margin-bottom: 8px; }
+  .flywheel-card h4 { font-size: 15px; font-weight: 800; margin-bottom: 8px; }
+  .flywheel-card p { font-size: 12px; color: #64748b; line-height: 1.6; }
+
+  /* ── PDA ── */
+  .pda-col { border-radius: 14px; border: 1px solid #e2e8f0; overflow: hidden; }
+  .pda-col-header {
+    padding: 12px 18px;
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+  }
+  .pda-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 8px 18px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 12px;
+  }
+  .pda-item:last-child { border-bottom: none; }
+  .pda-code { font-weight: 800; min-width: 28px; }
+  .pda-name { font-weight: 600; color: #334155; }
+  .pda-desc { color: #94a3b8; font-size: 11px; }
+
+  /* ── Heatmap ── */
+  .heatmap-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    font-size: 13px;
+  }
+  .heatmap-table th {
+    padding: 10px 16px;
+    background: #f8fafc;
+    font-weight: 700;
+    color: #475569;
+    text-align: center;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .heatmap-table td {
+    padding: 10px 16px;
+    text-align: center;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .heatmap-table td:first-child { text-align: left; font-weight: 600; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+  .dot-high { background: #ef4444; }
+  .dot-mid { background: #f59e0b; }
+  .dot-low { background: #22c55e; }
+
+  /* ── Badges ── */
+  .funnel-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-left: 6px;
+  }
+  .funnel-tofu { background: #dcfce7; color: #16a34a; }
+  .funnel-mofu { background: #fef9c3; color: #ca8a04; }
+  .funnel-bofu { background: #ffedd5; color: #ea580c; }
+
+  /* ── Combination Cards ── */
+  .combo-card {
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 18px 22px;
+    background: #fafbfd;
+  }
+  .combo-card .formula { font-size: 13px; font-weight: 800; color: #6366f1; margin-bottom: 6px; }
+  .combo-card .hook { font-size: 13px; color: #475569; font-style: italic; margin-bottom: 6px; }
+  .combo-card .result { font-size: 12px; color: #10b981; font-weight: 600; }
+
+  /* ── Status Badges ── */
+  .status-row { display: flex; gap: 10px; margin-bottom: 12px; }
+  .status-badge {
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 14px;
+    border-radius: 8px;
+  }
+
+  /* ── Diff List ── */
+  .diff-list { list-style: none; }
+  .diff-list li {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 13px;
+    color: #475569;
+  }
+  .diff-list .num {
+    font-size: 14px;
+    font-weight: 900;
+    color: #6366f1;
+    min-width: 24px;
+  }
+
+  /* ── TOC Nav ── */
+  .toc-nav {
+    position: fixed;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    z-index: 100;
+  }
+  .toc-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    border: none;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .toc-dot:hover { background: #6366f1; transform: scale(1.3); }
+
+  /* ── Comparison Table ── */
+  .compare-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    font-size: 13px;
+  }
+  .compare-table th {
+    padding: 12px 16px;
+    background: #f1f5f9;
+    font-weight: 700;
+    color: #475569;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .compare-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    vertical-align: top;
+  }
+  .compare-table td:first-child { font-weight: 700; color: #334155; width: 120px; }
+  .compare-table tr:last-child td { border-bottom: none; }
+
+  /* ── Cycle Arrow ── */
+  .cycle-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 999px;
+    background: #f0fdf4;
+    border: 1px solid #a7f3d0;
+    font-size: 13px;
+    color: #16a34a;
+    font-weight: 600;
+    margin: 0 auto 24px;
+    max-width: 700px;
+  }
+
+  /* ── Version Boxes ── */
+  .version-box {
+    border-radius: 14px;
+    padding: 24px;
+    border: 2px solid;
+  }
+  .version-tag {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 900;
+    padding: 3px 12px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+  }
+  .version-box h4 { font-size: 16px; font-weight: 800; margin-bottom: 14px; }
+  .version-box .item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: 13px;
+  }
+  .version-box .item-label { font-weight: 700; color: #334155; }
+  .version-box .item-desc { color: #64748b; }
+
+  /* ── v2 Feature Grid ── */
+  .v2-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
+  .v2-card {
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    padding: 18px;
+    background: #fff;
+  }
+  .v2-card .emoji { font-size: 20px; margin-bottom: 6px; }
+  .v2-card h4 { font-size: 14px; font-weight: 800; margin-bottom: 8px; }
+  .v2-card .items { font-size: 12px; color: #64748b; line-height: 1.7; }
+
+  @media (max-width: 900px) {
+    .two-col, .three-col, .metric-grid, .flywheel-grid, .v2-grid { grid-template-columns: 1fr; }
+    .pipeline { flex-wrap: wrap; justify-content: center; }
+    .toc-nav { display: none; }
+  }
+
+  /* ── Lightbox ── */
+  .lightbox-overlay {
+    display:none; position:fixed; inset:0; z-index:9999;
+    background:rgba(0,0,0,.85); align-items:center; justify-content:center;
+    cursor:zoom-out; backdrop-filter:blur(4px);
+  }
+  .lightbox-overlay.active { display:flex; }
+  .lightbox-overlay img,
+  .lightbox-overlay video {
+    max-width:92vw; max-height:90vh; border-radius:12px;
+    box-shadow:0 8px 40px rgba(0,0,0,.5);
+  }
+  .lightbox-close {
+    position:absolute; top:20px; right:28px;
+    width:40px; height:40px; border-radius:50%;
+    border:none; background:rgba(255,255,255,.15);
+    color:#fff; font-size:22px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:background .15s;
+  }
+  .lightbox-close:hover { background:rgba(255,255,255,.3); }
+  .expandable { cursor:zoom-in; transition:transform .15s; }
+  .expandable:hover { transform:scale(1.02); }
+</style>
+</head>
+<body>
+
+<!-- ████ TOC Navigation ████ -->
+<nav class="toc-nav">
+  <button class="toc-dot" onclick="document.getElementById('hero').scrollIntoView({behavior:'smooth'})" title="Hero"></button>
+  <button class="toc-dot" onclick="document.getElementById('meta').scrollIntoView({behavior:'smooth'})" title="META"></button>
+  <button class="toc-dot" onclick="document.getElementById('problem').scrollIntoView({behavior:'smooth'})" title="Problem"></button>
+  <button class="toc-dot" onclick="document.getElementById('solution').scrollIntoView({behavior:'smooth'})" title="Solution"></button>
+  <button class="toc-dot" onclick="document.getElementById('workflow').scrollIntoView({behavior:'smooth'})" title="Workflow"></button>
+  <button class="toc-dot" onclick="document.getElementById('phase12').scrollIntoView({behavior:'smooth'})" title="Phase 1-2"></button>
+  <button class="toc-dot" onclick="document.getElementById('phase34').scrollIntoView({behavior:'smooth'})" title="Phase 3-4"></button>
+  <button class="toc-dot" onclick="document.getElementById('phase56').scrollIntoView({behavior:'smooth'})" title="Phase 5-6"></button>
+  <button class="toc-dot" onclick="document.getElementById('phase78').scrollIntoView({behavior:'smooth'})" title="Phase 7-8"></button>
+  <button class="toc-dot" onclick="document.getElementById('ugc').scrollIntoView({behavior:'smooth'})" title="UGC"></button>
+  <button class="toc-dot" onclick="document.getElementById('pda').scrollIntoView({behavior:'smooth'})" title="PDA"></button>
+  <button class="toc-dot" onclick="document.getElementById('thankyou').scrollIntoView({behavior:'smooth'})" title="Thank You"></button>
+</nav>
+
+<!-- ████ HERO ████ -->
+<section id="hero" style="background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 40%, #4f46e5 70%, #6366f1 100%); padding: 80px 0 60px;">
+  <div class="page">
+    <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <span style="font-size:12px;font-weight:700;padding:4px 14px;border-radius:8px;background:rgba(255,255,255,.12);color:#e0e7ff;border:1px solid rgba(255,255,255,.08);">F&F AX TEAM</span>
+      <span style="font-size:12px;font-weight:700;padding:4px 14px;border-radius:8px;background:rgba(255,255,255,.12);color:#e0e7ff;border:1px solid rgba(255,255,255,.08);">v2.0</span>
+      <span style="font-size:12px;font-weight:700;padding:4px 14px;border-radius:8px;background:rgba(255,255,255,.12);color:#e0e7ff;border:1px solid rgba(255,255,255,.08);">2026.03</span>
+    </div>
+    <h1 style="font-size:42px;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:8px;">F&CO Influencer DashBoard 2.0</h1>
+    <p style="font-size:24px;font-weight:800;color:#c7d2fe;margin-bottom:16px;">광고 맞춤형 인플루언서 캠페인 빌더</p>
+    <p style="font-size:15px;color:#a5b4fc;margin-bottom:4px;">인플루언서 시딩 캠페인의 전체 라이프사이클을 하나의 플랫폼에서 관리하는</p>
+    <p style="font-size:15px;font-weight:800;color:#e0e7ff;">올인원 8단계 워크플로우 엔진</p>
+    <p style="font-size:13px;color:#818cf8;margin-top:24px;">AX 마케팅팀 김효은</p>
+  </div>
+</section>
+
+<!-- ████ SLIDE 01 — META 광고 시스템 변화 ████ -->
+<section id="meta" style="background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 40%, #93c5fd 100%); padding: 40px 0 32px;">
+  <div class="page">
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+      <h2 style="font-size:26px;font-weight:900;color:#1e3a5f;margin:0;">META 광고 시스템 변화</h2>
+      <span style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;background:#2563eb;color:#fff;">⚡ 업데이트 배경</span>
+    </div>
+    <p style="font-size:14px;color:#475569;line-height:1.7;margin:0;">
+      META의 GEM + Andromeda 시스템 도입으로 광고 운영 패러다임이 근본적으로 변화하였으며,<br>
+      이에 따라 <strong>F&CO 인플루언서 시딩 대시보드 2.0</strong> 업데이트가 필요하게 되었습니다.
+    </p>
+  </div>
+</section>
+
+<div class="page">
+  <div class="slide">
+
+    <!-- ── GEM + Andromeda 2-col ── -->
+    <div class="two-col" style="margin-bottom:32px;">
+      <!-- GEM -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span style="font-size:20px;">🧠</span>
+          <div>
+            <span style="font-size:16px;font-weight:800;color:#1e293b;">GEM</span>
+            <span style="font-size:13px;color:#64748b;margin-left:4px;">(Generative Ads Model)</span>
+          </div>
+        </div>
+        <p style="font-size:12px;font-weight:700;color:#6366f1;margin-bottom:10px;">초 거대 AI 두뇌</p>
+        <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:16px;">
+          광고 클릭 확률 예측을 넘어, 광고 소재의 맥락(Context)을 파악하여 사용자의 <strong>잠재적 의도(Intent)</strong>를 시맨틱(Semantic) 차원에서 연결합니다.
+        </p>
+        <div style="display:flex;gap:8px;">
+          <div style="flex:1;padding:12px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;">
+            <p style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:4px;">기존 방식</p>
+            <p style="font-size:12px;color:#64748b;">"클렌징밤" 키워드 매칭</p>
+          </div>
+          <div style="display:flex;align-items:center;color:#cbd5e1;font-size:18px;flex-shrink:0;">→</div>
+          <div style="flex:1;padding:12px;border-radius:10px;background:#eef2ff;border:1px solid #c7d2fe;">
+            <p style="font-size:11px;font-weight:700;color:#6366f1;margin-bottom:4px;">GEM 방식</p>
+            <p style="font-size:12px;color:#4338ca;">"도심 속에서 러닝을 즐기는 30대 직장인의 라이프스타일"</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Andromeda -->
+      <div class="card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+          <span style="font-size:20px;">🔭</span>
+          <div>
+            <span style="font-size:16px;font-weight:800;color:#1e293b;">Andromeda</span>
+            <span style="font-size:13px;color:#64748b;margin-left:4px;">(안드로메다)</span>
+          </div>
+        </div>
+        <p style="font-size:12px;font-weight:700;color:#6366f1;margin-bottom:10px;">차세대 검색 및 추천 엔진</p>
+        <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:16px;">
+          광고주가 설정한 '타겟팅(관심사, 맞춤 타겟 등)' 보다 <strong>'광고 소재'</strong> 자체가 반응할 확률이 높은 유저를 찾아 매칭합니다.
+        </p>
+        <div style="padding:14px;border-radius:10px;background:#fffbeb;border:1px solid #fde68a;">
+          <p style="font-size:11px;font-weight:700;color:#f59e0b;margin-bottom:6px;">핵심 전략</p>
+          <p style="font-size:13px;font-weight:700;color:#475569;margin-bottom:6px;">"소재의 다양성" — 타겟 세분화 & 피로도 극복 시나리오 필수</p>
+          <p style="font-size:12px;color:#64748b;line-height:1.7;">동일 제품이라도 소재의 톤·메시지에 따라 각기 다른 페르소나에게 자동 도달합니다. 타겟 설정 없이도 소재 자체가 타겟팅 역할을 수행하므로, <strong>소재 다양성 = 타겟 다양성</strong>입니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Andromeda 소재 매칭 프로세스 ── -->
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <span style="font-size:16px;">🔭</span>
+        <span style="font-size:15px;font-weight:800;color:#8b5cf6;">Andromeda 소재 매칭 프로세스</span>
+      </div>
+      <div style="border-radius:14px;border:1px solid #e2e8f0;background:#fafbfd;padding:24px;text-align:center;">
+        <img src="img.gif" alt="Andromeda 소재 매칭 프로세스" style="max-width:100%;border-radius:10px;" />
+        <p style="font-size:12px;color:#8b5cf6;font-weight:600;margin-top:14px;">소재 자체가 반응할 확률이 높은 유저를 찾아 자동으로 매칭하는 Andromeda 엔진</p>
+      </div>
+    </div>
+
+    <!-- ── 광고 운영 핵심 원칙 ── -->
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <span style="font-size:20px;">🎯</span>
+        <h3 style="margin:0;font-size:18px;">광고 운영 핵심 원칙</h3>
+      </div>
+      <div class="two-col" style="margin-bottom:20px;">
+        <!-- 소재의 속도와 양 -->
+        <div style="padding:22px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+            <div style="width:28px;height:28px;border-radius:8px;background:#ecfdf5;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:14px;">⚡</span>
+            </div>
+            <h3 style="font-size:15px;font-weight:800;margin:0;color:#1e293b;">'소재의 속도'와 '양'</h3>
+          </div>
+          <div style="font-size:13px;color:#475569;line-height:1.9;">
+            <div style="padding:4px 0;">● 광고 세트당 <strong>5~15개</strong> 소재 최적 (전문가 및 데이터 기반)</div>
+            <div style="padding:4px 0;">● 일 지출 $10,000 이상 시 <strong>20개</strong> 이상 소재 유효</div>
+            <div style="padding:4px 0;">● 소재 생명 주기: <strong>7~14일</strong> 주기로 소재 리프레시 필요</div>
+          </div>
+        </div>
+        <!-- 성과 판단의 기준 -->
+        <div style="padding:22px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+            <div style="width:28px;height:28px;border-radius:8px;background:#eef2ff;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:14px;">📊</span>
+            </div>
+            <h3 style="font-size:15px;font-weight:800;margin:0;color:#1e293b;">성과 판단의 기준</h3>
+          </div>
+          <div style="font-size:13px;color:#475569;line-height:1.9;">
+            <div style="padding:4px 0;">● 단순 CPM, CPC 분석 지양</div>
+            <div style="padding:4px 0;">● <strong>'소재별 성과 분석'</strong> → 어떤 소재가 어떤 페르소나를 데려오는지</div>
+            <div style="padding:4px 0;">● 소재 P.D.A 분석, 광고 지표, CRM, 재구매율 등 종합 분석</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Andromeda 성공 신호 배너 -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-radius:14px;background:linear-gradient(135deg, #2563eb, #3b82f6);margin-bottom:20px;">
+        <div>
+          <p style="font-size:13px;font-weight:700;color:#bfdbfe;margin-bottom:4px;">Andromeda 성공 신호</p>
+          <p style="font-size:14px;font-weight:700;color:#fff;line-height:1.6;">
+            <strong>CTR(클릭률) 15% 이상</strong> 달성 → Andromeda의 추천 알고리즘 상 정확한 잠재 고객에게 도달했음을 보여주는 강력한 성공 지표
+          </p>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:32px;">
+          <div style="font-size:42px;font-weight:900;color:#fff;line-height:1;">15%+</div>
+          <div style="font-size:12px;color:#bfdbfe;font-weight:600;">CTR 목표</div>
+        </div>
+      </div>
+
+      <!-- F&CO 대시보드 2.0 업데이트 필요성 -->
+      <div style="padding:20px 24px;border-radius:14px;border:1px solid #e2e8f0;background:#fafbfd;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="font-size:16px;">🚀</span>
+          <span style="font-size:15px;font-weight:800;color:#6366f1;">F&CO 대시보드 2.0 업데이트 필요성</span>
+        </div>
+        <p style="font-size:13px;color:#475569;line-height:1.7;">
+          META의 GEM + Andromeda 시스템 변화에 대응하기 위해, <strong>소재 중심 성과 분석(P.D.A)</strong>, <strong>소재 다양성 관리(훅뱅크, UGC 플라이휠)</strong>, <strong>7~14일 주기 리프레시 자동화</strong>, <strong>소재별 페르소나 매칭 분석</strong> 등의 기능을 강화한 대시보드 2.0이 필요합니다.
+        </p>
+      </div>
+    </div>
+
+    <!-- v1.0 → v2.0 비교 -->
+    <div style="margin-bottom:24px;">
+      <span class="slide-badge">SLIDE 02-2</span>
+      <h2 style="display:flex;align-items:center;gap:12px;">F&CO 대시보드 v1.0 → v2.0
+        <span style="font-size:11px;font-weight:700;padding:4px 12px;border-radius:6px;background:#f0fdf4;color:#16a34a;">🔄 주요 변화</span>
+      </h2>
+      <p class="slide-subtitle">기존 콘텐츠 관리 중심 v1.0에서, META GEM+Andromeda에 대응하는 <strong>소재 중심 캠페인 운영 플랫폼</strong> v2.0으로 진화합니다.</p>
+    </div>
+
+    <!-- ── v1.0 ── -->
+    <div style="margin-bottom:0;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:13px;font-weight:900;padding:3px 12px;border-radius:6px;background:#e2e8f0;color:#64748b;">v1.0</span>
+        <span style="font-size:15px;font-weight:800;color:#334155;">기존 플랫폼 — 콘텐츠 관리 & AI Plan</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:0;">
+        <div style="padding:18px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;">
+          <p style="font-size:14px;font-weight:700;margin-bottom:6px;color:#334155;">콘텐츠 관리</p>
+          <p style="font-size:12px;color:#64748b;line-height:1.6;">Seeding / Preview / UGC / Performance 4단계 등록·대시보드</p>
+          <img src="슬라이드1.JPG" alt="콘텐츠 관리" style="width:100%;border-radius:8px;margin-top:10px;" />
+        </div>
+        <div style="padding:18px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;">
+          <p style="font-size:14px;font-weight:700;margin-bottom:6px;color:#334155;">소셜 크롤링</p>
+          <p style="font-size:12px;color:#64748b;line-height:1.6;">Instagram · YouTube · TikTok · X 자동 메타데이터 수집</p>
+          <img src="슬라이드2.JPG" alt="소셜 크롤링" style="width:100%;border-radius:8px;margin-top:10px;" />
+        </div>
+        <div style="padding:18px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;">
+          <p style="font-size:14px;font-weight:700;margin-bottom:6px;color:#334155;">AI Plan</p>
+          <p style="font-size:12px;color:#64748b;line-height:1.6;">기획서 업로드 → Gemini 분석 → 시나리오·이미지 생성</p>
+          <video src="전체 FNCO 워크플로우.mp4" controls style="width:100%;border-radius:8px;margin-top:10px;"></video>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Arrow Divider ── -->
+    <div style="display:flex;align-items:center;justify-content:center;padding:20px 0;">
+      <div style="display:inline-flex;align-items:center;gap:8px;padding:8px 24px;border-radius:999px;background:#f8fafc;border:1px solid #e2e8f0;">
+        <span style="color:#6366f1;">⬇</span>
+        <span style="font-size:13px;font-weight:700;color:#4338ca;">META GEM + Andromeda 대응 업그레이드</span>
+        <span style="color:#6366f1;">⬇</span>
+      </div>
+    </div>
+
+    <!-- ── v2.0 ── -->
+    <div style="margin-bottom:32px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;">
+        <span style="font-size:13px;font-weight:900;padding:3px 12px;border-radius:6px;background:#eef2ff;color:#4338ca;">v2.0</span>
+        <span style="font-size:15px;font-weight:800;color:#334155;">신규 — 인플루언서 대시보드 2.0</span>
+        <span style="font-size:11px;font-weight:800;padding:3px 10px;border-radius:6px;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;letter-spacing:.5px;">UPGRADE</span>
+      </div>
+      <p style="font-size:13px;font-weight:700;color:#4338ca;margin:0 0 14px 0;">총 <span style="font-size:18px;font-weight:900;">5</span>개 Chapter로 구성된 통합 플랫폼</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+        <!-- Ch.1 캠페인 빌더 -->
+        <div style="padding:20px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#6366f1,#818cf8);"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:#eef2ff;font-size:11px;font-weight:900;color:#6366f1;">01</span>
+            <h4 style="font-size:14px;font-weight:800;color:#6366f1;margin:0;">캠페인 빌더 (8단계)</h4>
+          </div>
+          <div style="font-size:12px;color:#64748b;line-height:1.8;">
+            P.D.A 프레임워크 기반 캠페인 전략 설계<br>
+            AI 콘텐츠 기획 & 가이드 생성<br>
+            페르소나 맞춤 인플루언서 선정<br>
+            캠페인 성과 모니터링 : P.D.A 히트맵 & 소재별 피로도
+          </div>
+        </div>
+        <!-- Ch.2 콘텐츠 엔진 2.0 -->
+        <div style="padding:20px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#f59e0b,#fbbf24);"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:#fffbeb;font-size:11px;font-weight:900;color:#f59e0b;">02</span>
+            <h4 style="font-size:14px;font-weight:800;color:#f59e0b;margin:0;">콘텐츠 엔진 2.0</h4>
+          </div>
+          <div style="font-size:12px;color:#64748b;line-height:1.8;">
+            기존 시딩 컨텐츠 대시보드 뷰<br>
+            GEO Ready : 글로벌 콘텐츠 활용 여부<br>
+            BF Score = 조회수 + 참여율 + GEO의 3요소 복합 성과 점수
+          </div>
+        </div>
+        <!-- Ch.3 크리에이터 허브 -->
+        <div style="padding:20px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#8b5cf6,#a78bfa);"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:#f5f3ff;font-size:11px;font-weight:900;color:#8b5cf6;">03</span>
+            <h4 style="font-size:14px;font-weight:800;color:#8b5cf6;margin:0;">크리에이터 허브</h4>
+          </div>
+          <div style="font-size:12px;color:#64748b;line-height:1.8;">
+            F&CO 시딩 중 인 크리에이터 파이프라인 관리<br>
+            인플루언서 별 페르소나 소니 매칭
+          </div>
+        </div>
+        <!-- Ch.4 인플루언서 풀 -->
+        <div style="padding:20px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#10b981,#34d399);"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:#ecfdf5;font-size:11px;font-weight:900;color:#10b981;">04</span>
+            <h4 style="font-size:14px;font-weight:800;color:#10b981;margin:0;">인플루언서 풀</h4>
+          </div>
+          <div style="font-size:12px;color:#64748b;line-height:1.8;">
+            Influencer Find Agent 기능 활용 : 타 브랜드&자사 IF POOL<br>
+            인플루언서 AI 심층 분석<br>
+            검증된 인원 크리에이터 허브로 이동
+          </div>
+        </div>
+        <!-- Ch.5 Analytics -->
+        <div style="padding:20px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;position:relative;overflow:hidden;">
+          <div style="position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#2563eb,#60a5fa);"></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+            <span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:#eff6ff;font-size:11px;font-weight:900;color:#2563eb;">05</span>
+            <h4 style="font-size:14px;font-weight:800;color:#2563eb;margin:0;">Analytics</h4>
+          </div>
+          <div style="font-size:12px;color:#64748b;line-height:1.8;">
+            전체 캠페인 성과 분석
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 핵심 패러다임 전환 테이블 -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <span style="font-size:18px;">🔀</span>
+      <h3 style="margin:0;">핵심 패러다임 전환</h3>
+    </div>
+    <table class="compare-table">
+      <thead>
+        <tr><th>영역</th><th>V1.0</th><th>V2.0</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>캠페인 기획</td><td>PDF/PPT 업로드 → AI Plan 분석</td><td>8단계 워크플로우 + P.D.A 매트릭스</td></tr>
+        <tr><td>소재 관리</td><td>4단계 콘텐츠 등록 (수동)</td><td>훅뱅크 + AI 생성 + 세트당 5~15개</td></tr>
+        <tr><td>인플루언서</td><td>프로필 스크래핑 + 퀵/딥 분석</td><td>소재 페르소나 매칭 + 아웃리치 자동화</td></tr>
+        <tr><td>성과 분석</td><td>콘텐츠 대시보드 (등록 건수 중심)</td><td>P.D.A 히트맵 + 피로도 + 초기 신호 감지</td></tr>
+        <tr><td>UGC</td><td>UGC 폼 등록 + 크롤링 수집</td><td>플라이휠 자동 순환 (수확→증폭→전환)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="slide-footer">
+      <span>FNCO Campaign Builder</span><span>01</span>
+    </div>
+  </div>
+</div>
+
+<!-- ████ SLIDE 03 — Problem Statement ████ -->
+<div class="page">
+  <div class="slide" id="problem">
+    <span class="slide-badge">SLIDE 03</span>
+    <h2>Problem Statement</h2>
+    <p class="slide-subtitle">인플루언서 시딩 캠페인 운영의 현재 문제점</p>
+
+    <div class="two-col">
+      <!-- 현재의 문제 -->
+      <div>
+        <h3 style="margin-bottom:16px;">현재의 문제</h3>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:18px;border-radius:12px;border:1px solid #e2e8f0;border-left:4px solid #fbbf24;">
+            <div style="width:36px;height:36px;border-radius:10px;background:#fffbeb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#f59e0b;flex-shrink:0;">1</div>
+            <div>
+              <p style="font-size:14px;font-weight:700;margin-bottom:4px;">데이터 사일로</p>
+              <p style="font-size:12px;color:#64748b;">5~7개의 서로 다른 도구에 데이터가 분산되어 전략과 실행 사이에 정보 단절 발생</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:18px;border-radius:12px;border:1px solid #e2e8f0;border-left:4px solid #fbbf24;">
+            <div style="width:36px;height:36px;border-radius:10px;background:#fffbeb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#f59e0b;flex-shrink:0;">2</div>
+            <div>
+              <p style="font-size:14px;font-weight:700;margin-bottom:4px;">수동 반복 작업</p>
+              <p style="font-size:12px;color:#64748b;">동일 데이터를 여러 툴에 수동 입력하는 비효율, 캠페인당 평균 5일 소요</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:18px;border-radius:12px;border:1px solid #e2e8f0;border-left:4px solid #fbbf24;">
+            <div style="width:36px;height:36px;border-radius:10px;background:#fffbeb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#f59e0b;flex-shrink:0;">3</div>
+            <div>
+              <p style="font-size:14px;font-weight:700;margin-bottom:4px;">성과 추적 불가</p>
+              <p style="font-size:12px;color:#64748b;">캠페인 전략이 최종 성과에 어떤 영향을 미쳤는지 역추적 불가능</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:18px;border-radius:12px;border:1px solid #e2e8f0;border-left:4px solid #fbbf24;">
+            <div style="width:36px;height:36px;border-radius:10px;background:#fffbeb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:900;color:#f59e0b;flex-shrink:0;">4</div>
+            <div>
+              <p style="font-size:14px;font-weight:700;margin-bottom:4px;">인사이트 손실</p>
+              <p style="font-size:12px;color:#64748b;">과거 캠페인의 학습이 다음 캠페인에 체계적으로 전달되지 않음</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 왜 지금인가? -->
+      <div>
+        <h3 style="margin-bottom:16px;">왜 지금인가?</h3>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div style="padding:18px;border-radius:14px;background:#eef2ff;border:1px solid #c7d2fe;">
+            <p style="font-size:11px;font-weight:700;color:#6366f1;margin-bottom:6px;">AI</p>
+            <p style="font-size:15px;font-weight:800;">AI 기술 성숙</p>
+            <p style="font-size:12px;color:#64748b;margin-top:4px;">LLM 기반 전략 자동 생성, 인플루언서 자동 매칭이 실용 수준에 도달</p>
+          </div>
+          <div style="padding:18px;border-radius:14px;background:#ecfdf5;border:1px solid #a7f3d0;">
+            <p style="font-size:11px;font-weight:700;color:#10b981;margin-bottom:6px;">UGC</p>
+            <p style="font-size:15px;font-weight:800;">UGC 마케팅 부상</p>
+            <p style="font-size:12px;color:#64748b;margin-top:4px;">브랜드 제작 대비 CTR 2~4배, CPA 30~50% 절감 효과 입증</p>
+          </div>
+          <div style="padding:18px;border-radius:14px;background:#f5f3ff;border:1px solid #c4b5fd;">
+            <p style="font-size:11px;font-weight:700;color:#8b5cf6;margin-bottom:6px;">SCALE</p>
+            <p style="font-size:15px;font-weight:800;">시딩 캠페인 규모 확대</p>
+            <p style="font-size:12px;color:#64748b;margin-top:4px;">캠페인당 인플루언서 10명 → 50명+로 증가, 수동 관리 한계</p>
+          </div>
+          <div style="padding:18px;border-radius:14px;background:#fff7ed;border:1px solid #fed7aa;">
+            <p style="font-size:11px;font-weight:700;color:#ea580c;margin-bottom:6px;">PDA</p>
+            <p style="font-size:15px;font-weight:800;">PDA 프레임워크 검증</p>
+            <p style="font-size:12px;color:#64748b;margin-top:4px;">Persona x Desire x Awareness 매트릭스가 기존 퍼널 대비 전환율 개선</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>FNCO Campaign Builder</span><span>02</span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ████ SLIDE 05 — 8-Phase Workflow ████ -->
+<div class="page">
+  <div class="slide" id="workflow">
+    <span class="slide-badge">SLIDE 05</span>
+    <h2>8-Phase Workflow</h2>
+    <p class="slide-subtitle">캠페인 라이프사이클 전체를 커버하는 순차 파이프라인</p>
+
+    <div class="pipeline">
+      <div class="pipeline-item"><div class="pipeline-icon" style="background:#6366f1;">1</div><div class="name">캠페인 설정</div><div class="desc">기본 정보<br>브랜드 DNA<br>예산·일정</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-item"><div class="pipeline-icon" style="background:#8b5cf6;">2</div><div class="name">캠페인 전략</div><div class="desc">PDA 프레임워크<br>AI 전략 생성<br>KPI 목표</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-item"><div class="pipeline-icon" style="background:#0d9488;">3</div><div class="name">콘텐츠 기획</div><div class="desc">콘텐츠 캘린더<br>컨셉 개발<br>브리프 작성</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-item"><div class="pipeline-icon" style="background:#0891b2;">4</div><div class="name">콘텐츠 제작</div><div class="desc">AI 콘텐츠 생성<br>크리에이티브 편집<br>승인 관리</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-item"><div class="pipeline-icon" style="background:#f59e0b;">5</div><div class="name">인플루언서 선정</div><div class="desc">AI 매칭<br>PDA 점수 기반<br>필터링</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-item"><div class="pipeline-icon" style="background:#ea580c;">6</div><div class="name">인플루언서 소통</div><div class="desc">협업 제안 발송<br>응답 관리<br>계약 관리</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-item"><div class="pipeline-icon" style="background:#ec4899;">7</div><div class="name">콘텐츠 론칭</div><div class="desc">동시 드랍<br>채널 세팅<br>스케줄 관리</div></div>
+      <div class="pipeline-arrow">→</div>
+      <div class="pipeline-item"><div class="pipeline-icon" style="background:#10b981;">8</div><div class="name">성과 모니터링</div><div class="desc">실시간 KPI<br>AI 최적화<br>UGC 플라이휠</div></div>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <h3 style="margin-bottom:12px;">캠페인 상태 관리</h3>
+        <div class="status-row">
+          <span class="status-badge" style="background:#f1f5f9;color:#64748b;">NEW (초안)</span>
+          <span class="status-badge" style="background:#dbeafe;color:#2563eb;">진행중</span>
+          <span class="status-badge" style="background:#dcfce7;color:#16a34a;">완료</span>
+          <span class="status-badge" style="background:#fee2e2;color:#ef4444;">보관</span>
+        </div>
+        <p style="font-size:13px;color:#64748b;line-height:1.7;">각 Phase는 not_started / in_progress / completed 상태를 가지며, WebSocket을 통해 실시간 반영됩니다.</p>
+      </div>
+      <div>
+        <h3 style="margin-bottom:12px;">핵심 차별점</h3>
+        <ul class="diff-list">
+          <li><span class="num">01</span> Phase 간 자유 이동 + 상태 자동 저장</li>
+          <li><span class="num">02</span> 각 Phase에서 AI 자동화 버튼 제공</li>
+          <li><span class="num">03</span> 전 단계 데이터가 연결되어 일관된 전략 유지</li>
+          <li><span class="num">04</span> 템플릿 저장으로 캠페인 재생산 80% 가속</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>FNCO Campaign Builder</span><span>04</span>
+    </div>
+  </div>
+</div>
+
+<!-- ████ SLIDE 06 — Phase 1-2 ████ -->
+<div class="page">
+  <div class="slide" id="phase12" style="background:#fafbfd;border-radius:16px;margin-top:20px;padding:40px;">
+    <span class="slide-badge">SLIDE 06</span>
+    <h2>Phase 1-2: 설정 & 전략</h2>
+    <p class="slide-subtitle">캠페인의 기반을 세우고 AI 기반 전략을 수립합니다</p>
+
+    <div class="two-col">
+      <div>
+        <div class="phase-header">
+          <div class="phase-num" style="background:#6366f1;">1</div>
+          <h3>캠페인 설정</h3>
+        </div>
+        <table class="data-table">
+          <tr><td>캠페인 생성 폼</td><td>캠페인명, 브랜드, 제품, 카테고리, 예산, 일정 입력</td></tr>
+          <tr><td>브랜드 DNA</td><td>브랜드 선택 시 미션/톤/비주얼/메시지 자동 채움</td></tr>
+          <tr><td>카테고리 선택</td><td>대분류 → 소분류 계단식 필터링</td></tr>
+          <tr><td>템플릿 갤러리</td><td>기존 템플릿에서 빠른 캠페인 생성</td></tr>
+          <tr><td>제품 파일 업로드</td><td>이미지/PDF 업로드 → AI 자동 분석</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="phase-header">
+          <div class="phase-num" style="background:#8b5cf6;">2</div>
+          <h3>캠페인 전략</h3>
+        </div>
+        <table class="data-table">
+          <tr><td>PDA 프레임워크</td><td>Persona x Desire x Awareness 매트릭스 전략</td></tr>
+          <tr><td>AI 전략 생성</td><td>채널/메시징/타이밍/예산/KPI 일괄 자동 생성</td></tr>
+          <tr><td>KPI 대시보드</td><td>3개월 평균 대비 정규화 비교 차트</td></tr>
+          <tr><td>타이밍 전략</td><td>TOFU/MOFU/BOFU 퍼널 + 컨셉 매핑</td></tr>
+          <tr><td>론칭 서사 아크</td><td>티징 → 공개 → 검증 → 확산</td></tr>
+          <tr><td>전략 승인</td><td>초안 → 승인 워크플로우 + 버전 이력</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>FNCO Campaign Builder</span><span>05</span>
+    </div>
+  </div>
+</div>
+
+<!-- ████ SLIDE 07 — Phase 3-4 ████ -->
+<div class="page">
+  <div class="slide" id="phase34">
+    <span class="slide-badge">SLIDE 07</span>
+    <h2>Phase 3-4: 기획 & 제작</h2>
+    <p class="slide-subtitle">PDA 매트릭스에서 도출된 컨셉을 실제 콘텐츠로 구체화합니다</p>
+
+    <div class="two-col">
+      <div>
+        <div class="phase-header">
+          <div class="phase-num" style="background:#0d9488;">3</div>
+          <h3>콘텐츠 기획</h3>
+        </div>
+        <table class="data-table">
+          <tr><td>콘텐츠 캘린더</td><td>월간/주간 뷰로 발행 일정 시각화</td></tr>
+          <tr><td>컨셉 개발</td><td>PDA 매트릭스에서 도출된 컨셉별 콘텐츠 방향</td></tr>
+          <tr><td>콘텐츠 브리프</td><td>인플루언서에게 전달할 가이드라인 문서 생성</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="phase-header">
+          <div class="phase-num" style="background:#0891b2;">4</div>
+          <h3>콘텐츠 제작</h3>
+        </div>
+        <table class="data-table">
+          <tr><td>AI 콘텐츠 생성</td><td>컨셉 기반 콘텐츠 초안 AI 자동 생성</td></tr>
+          <tr><td>크리에이티브 에디터</td><td>생성된 콘텐츠를 수정·보완하는 편집 도구</td></tr>
+          <tr><td>제작물 관리</td><td>초안 / 검토중 / 승인 / 반려 상태 파이프라인</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>FNCO Campaign Builder</span><span>06</span>
+    </div>
+  </div>
+</div>
+
+<!-- ████ SLIDE 08 — Phase 5-6 ████ -->
+<div class="page">
+  <div class="slide" id="phase56" style="background:#fafbfd;border-radius:16px;margin-top:20px;padding:40px;">
+    <span class="slide-badge">SLIDE 08</span>
+    <h2>Phase 5-6: 선정 & 소통</h2>
+    <p class="slide-subtitle">AI 매칭으로 최적 인플루언서를 선정하고 협업을 관리합니다</p>
+
+    <div class="two-col">
+      <div>
+        <div class="phase-header">
+          <div class="phase-num" style="background:#f59e0b;">5</div>
+          <h3>인플루언서 선정</h3>
+        </div>
+        <table class="data-table">
+          <tr><td>AI 매칭</td><td>PDA 점수 기반 최적 인플루언서 자동 추천</td></tr>
+          <tr><td>필터링 & 검색</td><td>플랫폼, 팔로워, 참여율, 카테고리 다중 필터</td></tr>
+          <tr><td>인플루언서 상세</td><td>성과 데이터, 과거 협업 이력 확인</td></tr>
+          <tr><td>선정 파이프라인</td><td>후보 → 선정 → 확정 단계별 관리</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="phase-header">
+          <div class="phase-num" style="background:#ea580c;">6</div>
+          <h3>인플루언서 소통</h3>
+        </div>
+        <table class="data-table">
+          <tr><td>협업 제안</td><td>DM/이메일 협업 제안 일괄 발송</td></tr>
+          <tr><td>응답 관리</td><td>수락/거절/미응답 상태 추적 + 후속 조치</td></tr>
+          <tr><td>계약 관리</td><td>협업 조건, 가이드라인, 일정 합의 관리</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>FNCO Campaign Builder</span><span>07</span>
+    </div>
+  </div>
+</div>
+
+<!-- ████ SLIDE 09 — Phase 7-8 ████ -->
+<div class="page">
+  <div class="slide" id="phase78">
+    <span class="slide-badge">SLIDE 09</span>
+    <h2>Phase 7-8: 론칭 & 모니터링</h2>
+    <p class="slide-subtitle">콘텐츠를 동기화 발행하고 실시간으로 성과를 추적합니다</p>
+
+    <div class="two-col">
+      <div>
+        <div class="phase-header">
+          <div class="phase-num" style="background:#ec4899;">7</div>
+          <h3>콘텐츠 론칭</h3>
+        </div>
+        <table class="data-table">
+          <tr><td>론칭 파이프라인</td><td>스케줄 생성 → 승인 → 실행 3단계</td></tr>
+          <tr><td>채널 세팅</td><td>네이버 스마트스토어, 쿠팡, 인스타그램 쇼핑</td></tr>
+          <tr><td>동시 드랍</td><td>서사 아크에 맞춘 콘텐츠 동기화 발행</td></tr>
+          <tr><td>스케줄 캘린더</td><td>플랫폼별 색상 코딩 + 상태 아이콘</td></tr>
+          <tr><td>진행률 트래킹</td><td>전체 진행률(%) + 건수 실시간 대시보드</td></tr>
+        </table>
+      </div>
+      <div>
+        <div class="phase-header">
+          <div class="phase-num" style="background:#10b981;">8</div>
+          <h3>성과 모니터링</h3>
+        </div>
+        <table class="data-table">
+          <tr><td>KPI 카드</td><td>노출수, CTR, CPA, ROAS (전주 대비 증감)</td></tr>
+          <tr><td>추이 차트</td><td>노출/클릭/전환 Area Chart 시각화</td></tr>
+          <tr><td>초기 신호 감지</td><td>훅 랭킹, 채널 랭킹, 이상 감지</td></tr>
+          <tr><td>실시간 최적화</td><td>콘텐츠 교체, 채널 리밸런싱, 메시지 피봇</td></tr>
+          <tr><td>UGC 플라이휠</td><td>수확 → 큐레이션 → 증폭 → 전환</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>FNCO Campaign Builder</span><span>08</span>
+    </div>
+  </div>
+</div>
+
+<!-- ████ SLIDE 10 — UGC Flywheel ████ -->
+<div class="page">
+  <div class="slide" id="ugc" style="background:#fafbfd;border-radius:16px;margin-top:20px;padding:40px;">
+    <span class="slide-badge">SLIDE 10</span>
+    <h2>UGC Flywheel</h2>
+    <p class="slide-subtitle">고객 생성 콘텐츠를 수확 → 큐레이션 → 증폭 → 전환하는 선순환 마케팅 엔진</p>
+
+    <div class="flywheel-grid">
+      <div class="flywheel-card" style="background:#ecfdf5;border-color:#a7f3d0;">
+        <div class="emoji">🌱</div>
+        <h4 style="color:#16a34a;">수확</h4>
+        <p>캠페인 관련 UGC 자동 수집<br>품질 + 감성 점수 자동 평가</p>
+      </div>
+      <div class="flywheel-card" style="background:#eff6ff;border-color:#93c5fd;">
+        <div class="emoji">👁️</div>
+        <h4 style="color:#2563eb;">큐레이션</h4>
+        <p>품질 5.0+ 필터링<br>권한 요청 DM 발송<br>허가 상태 추적</p>
+      </div>
+      <div class="flywheel-card" style="background:#f5f3ff;border-color:#c4b5fd;">
+        <div class="emoji">⚡</div>
+        <h4 style="color:#8b5cf6;">증폭</h4>
+        <p>광고 소재 활용<br>상세페이지 배치<br>리포스트 자동화</p>
+      </div>
+      <div class="flywheel-card" style="background:#fffbeb;border-color:#fcd34d;">
+        <div class="emoji">🏆</div>
+        <h4 style="color:#f59e0b;">전환</h4>
+        <p>크리에이터 집계<br>인플루언서 전환<br>시딩 캠페인 재투입</p>
+      </div>
+    </div>
+
+    <div class="cycle-pill">
+      ♻️ 전환된 크리에이터가 인플루언서로 시딩 캠페인에 재투입 → 더 많은 UGC 유발 (선순환)
+    </div>
+
+    <div class="two-col">
+      <div style="padding:24px;border-radius:14px;background:#ecfdf5;border:2px solid #a7f3d0;">
+        <p style="font-size:12px;font-weight:700;color:#16a34a;margin-bottom:12px;">UGC 광고 효과 (업계 벤치마크)</p>
+        <div style="display:flex;gap:24px;">
+          <div>
+            <p style="font-size:32px;font-weight:900;color:#16a34a;">2~4x</p>
+            <p style="font-size:12px;color:#64748b;">CTR 향상</p>
+          </div>
+          <div>
+            <p style="font-size:32px;font-weight:900;color:#16a34a;">30~50%</p>
+            <p style="font-size:12px;color:#64748b;">CPA 절감</p>
+          </div>
+        </div>
+      </div>
+      <div style="padding:24px;border-radius:14px;background:#fffbeb;border:2px solid #fde68a;">
+        <p style="font-size:12px;font-weight:700;color:#f59e0b;margin-bottom:12px;">목표 지표</p>
+        <div style="display:flex;gap:24px;">
+          <div>
+            <p style="font-size:32px;font-weight:900;color:#f59e0b;">10%+</p>
+            <p style="font-size:12px;color:#64748b;">수확 → 전환율</p>
+          </div>
+          <div>
+            <p style="font-size:32px;font-weight:900;color:#f59e0b;">5.0+</p>
+            <p style="font-size:12px;color:#64748b;">큐레이션 품질 기준</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>FNCO Campaign Builder</span><span>09</span>
+    </div>
+  </div>
+</div>
+
+<!-- ████ SLIDE 11 — PDA Framework ████ -->
+<div class="page">
+  <div class="slide" id="pda">
+    <span class="slide-badge">SLIDE 11</span>
+    <h2>PDA Framework</h2>
+    <p class="slide-subtitle">Persona x Desire x Awareness 매트릭스 기반 전략 설계</p>
+
+    <div class="three-col" style="margin-bottom:32px;">
+      <!-- Persona -->
+      <div class="pda-col">
+        <div class="pda-col-header" style="background:#ea580c;">Persona — 12 유형</div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P1</span><span class="pda-name">피부 입문자</span><span class="pda-desc">(18-24, 대학생)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P2</span><span class="pda-name">효율 추구형</span><span class="pda-desc">(25-34, 직장인)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P3</span><span class="pda-name">스킨케어 마니아</span><span class="pda-desc">(28-40, 뷰티 업계)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P4</span><span class="pda-name">얼리 안티에이징</span><span class="pda-desc">(25-29)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P5</span><span class="pda-name">클린 뷰티 비건</span><span class="pda-desc">(20-35)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P6</span><span class="pda-name">그루밍족</span><span class="pda-desc">(24-34, 남성)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P7</span><span class="pda-name">트러블 슈터</span><span class="pda-desc">(15-24, 학생)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P8</span><span class="pda-name">스마트 골든 에이지</span><span class="pda-desc">(45-55)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P9</span><span class="pda-name">민감성/더마</span><span class="pda-desc">(20-40)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P10</span><span class="pda-name">바쁜 워킹/육아맘</span><span class="pda-desc">(30-45)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P11</span><span class="pda-name">럭셔리 스테이머</span><span class="pda-desc">(20-40)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#ea580c;">P12</span><span class="pda-name">이벤트 타겟</span><span class="pda-desc">(20-35, 예비신부)</span></div>
+      </div>
+
+      <!-- Desire -->
+      <div class="pda-col">
+        <div class="pda-col-header" style="background:#16a34a;">Desire — 8 유형</div>
+        <div class="pda-item"><span class="pda-code" style="color:#16a34a;">D1</span><span class="pda-name">사회적 자신감</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#16a34a;">D2</span><span class="pda-name">피부 건강/보호</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#16a34a;">D3</span><span class="pda-name">시간 역행(노화 방지)</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#16a34a;">D4</span><span class="pda-name">효율적 미니멀리즘</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#16a34a;">D5</span><span class="pda-name">가치 소비/윤리</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#16a34a;">D6</span><span class="pda-name">럭셔리/지위 과시</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#16a34a;">D7</span><span class="pda-name">즉각적 문제 해결</span></div>
+        <div class="pda-item"><span class="pda-code" style="color:#16a34a;">D8</span><span class="pda-name">트렌드 동질감</span></div>
+      </div>
+
+      <!-- Awareness -->
+      <div class="pda-col">
+        <div class="pda-col-header" style="background:#7c3aed;">Awareness — 4 단계</div>
+        <div class="pda-item" style="flex-wrap:wrap;">
+          <span class="pda-code" style="color:#7c3aed;">A1</span>
+          <span class="pda-name">문제 미인지 (Unaware)</span>
+          <span class="funnel-badge funnel-tofu">TOFU</span>
+          <div style="width:100%;font-size:11px;color:#94a3b8;padding-left:36px;">톤: 호기심 자극 | Hook: Visual Shock, Trend, Myth</div>
+        </div>
+        <div class="pda-item" style="flex-wrap:wrap;">
+          <span class="pda-code" style="color:#7c3aed;">A2</span>
+          <span class="pda-name">문제 인지 (Problem Aware)</span>
+          <span class="funnel-badge funnel-tofu">TOFU</span>
+          <div style="width:100%;font-size:11px;color:#94a3b8;padding-left:36px;">톤: 공감형 | Hook: Pain, Story, Emotional, ASMR</div>
+        </div>
+        <div class="pda-item" style="flex-wrap:wrap;">
+          <span class="pda-code" style="color:#7c3aed;">A3</span>
+          <span class="pda-name">솔루션 인지 (Solution Aware)</span>
+          <span class="funnel-badge funnel-mofu">MOFU</span>
+          <div style="width:100%;font-size:11px;color:#94a3b8;padding-left:36px;">톤: 전문적 | Hook: Result, Utility, Contradiction</div>
+        </div>
+        <div class="pda-item" style="flex-wrap:wrap;">
+          <span class="pda-code" style="color:#7c3aed;">A4</span>
+          <span class="pda-name">제품 인지 (Product Aware)</span>
+          <span class="funnel-badge funnel-bofu">BOFU</span>
+          <div style="width:100%;font-size:11px;color:#94a3b8;padding-left:36px;">톤: 설득적 | Hook: Fame, Contradiction, Result</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Heatmap -->
+    <div style="margin-bottom:32px;">
+      <h3 style="margin-bottom:6px;">PDA 히트맵 — 소재 x 페르소나 매칭 분석</h3>
+      <p style="font-size:12px;color:#94a3b8;margin-bottom:16px;">P(12유형) x D(8유형) x A(4단계) = 최대 384개 조합에서 각 소재가 어떤 조합에서 최고 성과를 보이는지 히트맵으로 시각화합니다.</p>
+      <table class="heatmap-table">
+        <thead>
+          <tr><th></th><th>A1 미인지</th><th>A2 문제인지</th><th>A3 솔루션</th><th>A4 제품인지</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>P1 입문자</td><td><span class="dot dot-high"></span></td><td><span class="dot dot-mid"></span></td><td><span class="dot dot-low"></span></td><td><span class="dot dot-low"></span></td></tr>
+          <tr><td>P2 효율형</td><td><span class="dot dot-mid"></span></td><td><span class="dot dot-high"></span></td><td><span class="dot dot-mid"></span></td><td><span class="dot dot-high"></span></td></tr>
+          <tr><td>P7 트러블</td><td><span class="dot dot-low"></span></td><td><span class="dot dot-high"></span></td><td><span class="dot dot-high"></span></td><td><span class="dot dot-mid"></span></td></tr>
+          <tr><td>P9 민감성</td><td><span class="dot dot-mid"></span></td><td><span class="dot dot-mid"></span></td><td><span class="dot dot-high"></span></td><td><span class="dot dot-high"></span></td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:11px;color:#94a3b8;margin-top:8px;">
+        <span class="dot dot-high" style="vertical-align:middle;"></span> 고성과 &nbsp;
+        <span class="dot dot-mid" style="vertical-align:middle;"></span> 중간 &nbsp;
+        <span class="dot dot-low" style="vertical-align:middle;"></span> 저성과 &nbsp;&nbsp;* 욕구(D) 축은 소재별로 자동 분류
+      </p>
+    </div>
+
+    <!-- 조합 예시 -->
+    <div class="two-col">
+      <div class="combo-card">
+        <div class="formula">조합 예시 1: P2(효율형) × D4(미니멀리즘) × A2(문제인지/TOFU)</div>
+        <div class="hook">"퇴근하면 세안도 귀찮은 게 나만 그런 거 아니잖아..."</div>
+        <div class="result">→ 공감형 15s Reels, 사전 버즈 단계 배치</div>
+      </div>
+      <div class="combo-card">
+        <div class="formula">조합 예시 2: P7(트러블) × D7(즉각 해결) × A4(제품인지/BOFU)</div>
+        <div class="hook">"하룻밤 사이 트러블 패치가 다 해결? 전후 비교 공개"</div>
+        <div class="result">→ Result Hook, 본격 확산 단계 배치</div>
+      </div>
+    </div>
+
+    <div class="slide-footer">
+      <span>FNCO Campaign Builder</span><span>10</span>
+    </div>
+  </div>
+</div>
+
+<!-- ████ THANK YOU ████ -->
+<section id="thankyou" style="background: linear-gradient(175.6deg, #1e1b4b 0%, #3730a3 30%, #4f46e5 60%, #6366f1 100%); padding: 120px 0; position:relative; overflow:hidden; margin-top: 40px;">
+  <div style="position:absolute;top:-100px;left:-100px;width:400px;height:400px;border-radius:50%;background:rgba(255,255,255,.03);"></div>
+  <div style="position:absolute;bottom:-80px;right:-80px;width:300px;height:300px;border-radius:50%;background:rgba(255,255,255,.02);"></div>
+  <div class="page" style="text-align:center;position:relative;z-index:1;">
+    <h2 style="font-size:48px;font-weight:900;color:#fff;letter-spacing:-1.44px;margin-bottom:16px;">Thank You</h2>
+    <p style="font-size:17px;color:#c7d2fe;margin-bottom:24px;">FNCO Campaign Builder Product Report</p>
+    <div style="display:flex;justify-content:center;gap:8px;">
+      <span style="font-size:12px;font-weight:700;padding:4px 14px;border-radius:8px;background:rgba(255,255,255,.1);color:#e0e7ff;border:1px solid rgba(255,255,255,.08);">Confidential</span>
+      <span style="font-size:12px;font-weight:700;padding:4px 14px;border-radius:8px;background:rgba(255,255,255,.1);color:#e0e7ff;border:1px solid rgba(255,255,255,.08);">2026.03</span>
+      <span style="font-size:12px;font-weight:700;padding:4px 14px;border-radius:8px;background:rgba(255,255,255,.1);color:#e0e7ff;border:1px solid rgba(255,255,255,.08);">v2.0</span>
+    </div>
+  </div>
+</section>
+
+<!-- Lightbox Overlay -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">&times;</button>
+  <div id="lightbox-content"></div>
+</div>
+
+<script>
+  // Make all images & videos expandable
+  document.querySelectorAll('.page img, .page video').forEach(el => {
+    el.classList.add('expandable');
+    el.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const overlay = document.getElementById('lightbox');
+      const container = document.getElementById('lightbox-content');
+      container.innerHTML = '';
+      if (el.tagName === 'VIDEO') {
+        const v = document.createElement('video');
+        v.src = el.src;
+        v.controls = true;
+        v.autoplay = true;
+        v.style.maxWidth = '92vw';
+        v.style.maxHeight = '90vh';
+        v.style.borderRadius = '12px';
+        container.appendChild(v);
+      } else {
+        const img = document.createElement('img');
+        img.src = el.src;
+        img.alt = el.alt || '';
+        container.appendChild(img);
+      }
+      overlay.classList.add('active');
+    });
+  });
+
+  function closeLightbox() {
+    const overlay = document.getElementById('lightbox');
+    overlay.classList.remove('active');
+    const container = document.getElementById('lightbox-content');
+    const video = container.querySelector('video');
+    if (video) video.pause();
+    container.innerHTML = '';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+</script>
+
+</body>
+</html>

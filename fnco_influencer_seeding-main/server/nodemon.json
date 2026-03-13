@@ -1,0 +1,4 @@
+{
+  "ignore": ["crawling/result/*", "crawling/downloads/*", "*.log"],
+  "delay": 2000
+}

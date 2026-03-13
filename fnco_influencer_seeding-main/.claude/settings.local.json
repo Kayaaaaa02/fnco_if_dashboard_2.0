@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npx eslint:*)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(grep:*)",
+      "Bash(for file in sidebar.jsx menubar.jsx dropdown-menu.jsx context-menu.jsx)",
+      "Bash(do echo -n \"$file: \")",
+      "Bash(npm run:*)",
+      "Bash(timeout 10s npm run dev)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

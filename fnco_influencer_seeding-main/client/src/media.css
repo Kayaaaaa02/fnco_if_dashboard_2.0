@@ -1,0 +1,29 @@
+.media-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9; /* 카드 비율 유지 */
+  overflow: hidden;
+  border-radius: 16px;
+  background: #000;
+}
+
+/* 블러 배경 */
+.media-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 카드 전체 채우기 */
+  filter: blur(20px) brightness(0.6); /* 블러 + 어둡게 */
+  transform: scale(1.2); /* 약간 확대해 경계 없게 */
+}
+
+/* 메인 콘텐츠 */
+.media-foreground {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  height: 100%;
+  object-fit: contain; /* 자르지 않고 비율 유지 */
+  z-index: 1;
+}

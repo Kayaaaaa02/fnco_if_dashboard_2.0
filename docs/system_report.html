@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FNCO 인플루언서 시딩 플랫폼 — 시스템 보고서</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --primary: #6366f1;
+    --primary-light: #818cf8;
+    --primary-dark: #4f46e5;
+    --primary-bg: #eef2ff;
+    --success: #059669;
+    --success-bg: #ecfdf5;
+    --warning: #f59e0b;
+    --warning-bg: #fffbeb;
+    --error: #ef4444;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-500: #6b7280;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+    --shadow: 0 1px 3px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+    --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,.1), 0 4px 6px rgba(0,0,0,.05);
+    --radius: 12px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--gray-50);
+    color: var(--gray-800);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #a855f7 100%);
+    color: #fff;
+    padding: 80px 0 60px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,.06) 1px, transparent 1px);
+    background-size: 30px 30px;
+  }
+  .hero h1 { font-size: 2.4rem; font-weight: 700; margin-bottom: 12px; position: relative; }
+  .hero p  { font-size: 1.1rem; opacity: .85; position: relative; max-width: 640px; margin: 0 auto; }
+  .hero .badge {
+    display: inline-block;
+    background: rgba(255,255,255,.18);
+    backdrop-filter: blur(4px);
+    padding: 6px 18px;
+    border-radius: 20px;
+    font-size: .85rem;
+    margin-bottom: 20px;
+    position: relative;
+  }
+
+  /* ── Container ── */
+  .container { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* ── Section ── */
+  .section { padding: 56px 0; }
+  .section-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 8px;
+  }
+  .section-subtitle {
+    color: var(--gray-500);
+    font-size: .95rem;
+    margin-bottom: 36px;
+  }
+  .section-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: .85rem;
+    margin-right: 10px;
+    vertical-align: middle;
+  }
+
+  /* ── Before/After ── */
+  .comparison { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 40px; }
+  @media (max-width: 768px) { .comparison { grid-template-columns: 1fr; } }
+
+  .comparison-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 32px;
+    box-shadow: var(--shadow);
+    border-top: 4px solid var(--gray-300);
+  }
+  .comparison-card.after { border-top-color: var(--primary); }
+  .comparison-card h3 {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .comparison-card .tag {
+    font-size: .72rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+  }
+  .tag-before { background: var(--gray-100); color: var(--gray-500); }
+  .tag-after  { background: var(--primary-bg); color: var(--primary); }
+
+  .feature-list { list-style: none; }
+  .feature-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-100);
+    font-size: .93rem;
+    color: var(--gray-700);
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .feature-list li:last-child { border-bottom: none; }
+  .feature-list .icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+  }
+
+  /* ── Perspective Cards ── */
+  .perspective-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+  }
+
+  .perspective-card {
+    background: #fff;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: box-shadow .2s, transform .2s;
+  }
+  .perspective-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  .perspective-header {
+    padding: 24px 28px 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .perspective-icon {
+    width: 44px; height: 44px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .perspective-header h3 { font-size: 1.05rem; font-weight: 600; }
+  .perspective-header p  { font-size: .82rem; color: var(--gray-500); margin-top: 2px; }
+
+  .perspective-body { padding: 0 28px 24px; }
+  .perspective-body table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  .perspective-body th {
+    text-align: left;
+    padding: 8px 0;
+    font-weight: 600;
+    color: var(--gray-500);
+    font-size: .78rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    border-bottom: 2px solid var(--gray-200);
+  }
+  .perspective-body td {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--gray-100);
+    color: var(--gray-700);
+    vertical-align: top;
+  }
+  .perspective-body td:first-child { font-weight: 500; color: var(--gray-800); white-space: nowrap; padding-right: 16px; }
+  .perspective-body tr:last-child td { border-bottom: none; }
+
+  /* Color themes for perspectives */
+  .theme-strategy .perspective-icon { background: #ede9fe; color: #7c3aed; }
+  .theme-ai .perspective-icon      { background: #dbeafe; color: #2563eb; }
+  .theme-influencer .perspective-icon { background: #fce7f3; color: #db2777; }
+  .theme-execution .perspective-icon { background: #d1fae5; color: #059669; }
+  .theme-optimize .perspective-icon { background: #fef3c7; color: #d97706; }
+  .theme-governance .perspective-icon { background: #e0e7ff; color: #4338ca; }
+
+  /* ── Phase Flow ── */
+  .phase-flow {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 900px) { .phase-flow { grid-template-columns: repeat(2, 1fr); } }
+
+  .phase-item {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    position: relative;
+    border-left: 4px solid;
+  }
+  .phase-item .phase-num {
+    font-size: .75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .phase-item .phase-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+  .phase-item .phase-desc  { font-size: .82rem; color: var(--gray-500); }
+  .phase-item .phase-arrow {
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-300);
+    font-size: 1.2rem;
+    z-index: 1;
+  }
+
+  .phase-item:nth-child(1)  { border-color: #7c3aed; }
+  .phase-item:nth-child(2)  { border-color: #6366f1; }
+  .phase-item:nth-child(3)  { border-color: #3b82f6; }
+  .phase-item:nth-child(4)  { border-color: #06b6d4; }
+  .phase-item:nth-child(5)  { border-color: #10b981; }
+  .phase-item:nth-child(6)  { border-color: #84cc16; }
+  .phase-item:nth-child(7)  { border-color: #f59e0b; }
+  .phase-item:nth-child(8)  { border-color: #ef4444; }
+
+  .phase-item:nth-child(1) .phase-num { color: #7c3aed; }
+  .phase-item:nth-child(2) .phase-num { color: #6366f1; }
+  .phase-item:nth-child(3) .phase-num { color: #3b82f6; }
+  .phase-item:nth-child(4) .phase-num { color: #06b6d4; }
+  .phase-item:nth-child(5) .phase-num { color: #10b981; }
+  .phase-item:nth-child(6) .phase-num { color: #84cc16; }
+  .phase-item:nth-child(7) .phase-num { color: #f59e0b; }
+  .phase-item:nth-child(8) .phase-num { color: #ef4444; }
+
+  /* ── Tech Stack ── */
+  .tech-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+  .tech-card {
+    background: #fff;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    text-align: center;
+  }
+  .tech-card .tech-label { font-size: .78rem; color: var(--gray-500); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px; }
+  .tech-card .tech-name  { font-size: .95rem; font-weight: 600; }
+
+  /* ── Conclusion ── */
+  .conclusion-card {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 48px;
+  }
+  .conclusion-card h2 { font-size: 1.4rem; margin-bottom: 24px; }
+  .conclusion-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+  .conclusion-item {
+    background: rgba(255,255,255,.12);
+    backdrop-filter: blur(4px);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .conclusion-item h4 { font-size: .95rem; font-weight: 600; margin-bottom: 6px; }
+  .conclusion-item p  { font-size: .85rem; opacity: .85; }
+
+  /* ── Stats ── */
+  .stats-bar {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin: 40px 0 0;
+    position: relative;
+  }
+  .stat-item {
+    background: rgba(255,255,255,.15);
+    backdrop-filter: blur(4px);
+    border-radius: 10px;
+    padding: 16px 28px;
+    text-align: center;
+  }
+  .stat-num  { font-size: 1.8rem; font-weight: 700; }
+  .stat-label { font-size: .8rem; opacity: .75; margin-top: 2px; }
+
+  /* ── Divider ── */
+  .divider { border: none; border-top: 1px solid var(--gray-200); margin: 0; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 32px 0;
+    color: var(--gray-500);
+    font-size: .82rem;
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════ Hero ════════════ -->
+<section class="hero">
+  <div class="container">
+    <div class="badge">System Report 2026</div>
+    <h1>FNCO 인플루언서 시딩 플랫폼</h1>
+    <p>콘텐츠 대시보드에서 End-to-End 인플루언서 마케팅 운영 플랫폼으로의 진화</p>
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-num">8</div>
+        <div class="stat-label">캠페인 단계</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">6</div>
+        <div class="stat-label">확장 관점</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">40+</div>
+        <div class="stat-label">신규 기능</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num">28</div>
+        <div class="stat-label">API 엔드포인트</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+
+<!-- ════════════ 1. Before / After ════════════ -->
+<section class="section">
+  <span class="section-number">1</span>
+  <span class="section-title">기존 vs. 확장</span>
+  <p class="section-subtitle">기존 대시보드의 기능 범위와 확장된 플랫폼의 커버리지 비교</p>
+
+  <div class="comparison">
+    <!-- Before -->
+    <div class="comparison-card">
+      <h3>
+        <span class="tag tag-before">Before</span>
+        기존 대시보드
+      </h3>
+      <ul class="feature-list">
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#9ca3af"><circle cx="10" cy="10" r="4"/></svg>
+          캠페인 기본 정보 생성 및 목록 관리
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#9ca3af"><circle cx="10" cy="10" r="4"/></svg>
+          시딩 콘텐츠 카드형 열람
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#9ca3af"><circle cx="10" cy="10" r="4"/></svg>
+          UGC 콘텐츠 조회
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#9ca3af"><circle cx="10" cy="10" r="4"/></svg>
+          성과 콘텐츠 기본 조회
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#9ca3af"><circle cx="10" cy="10" r="4"/></svg>
+          인플루언서 풀 기본 관리
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#9ca3af"><circle cx="10" cy="10" r="4"/></svg>
+          콘텐츠 라이브러리 아카이빙
+        </li>
+      </ul>
+    </div>
+
+    <!-- After -->
+    <div class="comparison-card after">
+      <h3>
+        <span class="tag tag-after">After</span>
+        확장된 플랫폼
+      </h3>
+      <ul class="feature-list">
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#6366f1"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+          PDA 프레임워크 기반 전략 구조화
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#6366f1"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+          AI 전략 생성 / 이미지 생성 / 카피 자동화
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#6366f1"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+          AI 인플루언서 매칭 및 5단계 파이프라인
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#6366f1"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+          아웃리치·브리프·런칭 통합 실행 관리
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#6366f1"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+          실시간 모니터링 + AI 최적화 제안
+        </li>
+        <li>
+          <svg class="icon" viewBox="0 0 20 20" fill="#6366f1"><path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+          Brand DNA·감사 로그·권한 거버넌스
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════ 2. 6 Perspectives ════════════ -->
+<section class="section">
+  <span class="section-number">2</span>
+  <span class="section-title">기능 확장 — 6가지 관점</span>
+  <p class="section-subtitle">기존 대시보드에서 어떤 관점으로 기능이 추가되었는지 정리</p>
+
+  <div class="perspective-grid">
+
+    <!-- 3.1 전략 체계화 -->
+    <div class="perspective-card theme-strategy">
+      <div class="perspective-header">
+        <div class="perspective-icon">&#9881;</div>
+        <div>
+          <h3>전략 체계화</h3>
+          <p>PDA 프레임워크 도입</p>
+        </div>
+      </div>
+      <div class="perspective-body">
+        <table>
+          <thead><tr><th>기능</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td>페르소나 설정</td><td>타겟 고객 유형을 프로필·페인포인트·행동 패턴으로 정의</td></tr>
+            <tr><td>디자이어 설정</td><td>제품 소구점을 감정 트리거와 함께 설계</td></tr>
+            <tr><td>인지단계 매핑</td><td>TOFU/MOFU/BOFU 퍼널 인지 단계 구분</td></tr>
+            <tr><td>컨셉 매트릭스</td><td>P x D x A 조합에서 콘텐츠 컨셉 자동 생성</td></tr>
+            <tr><td>프로덕트 브리프</td><td>제품 파일에서 AI가 정보 자동 추출</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3.2 AI 자동화 -->
+    <div class="perspective-card theme-ai">
+      <div class="perspective-header">
+        <div class="perspective-icon">&#10024;</div>
+        <div>
+          <h3>AI 자동화</h3>
+          <p>전략 생성 및 콘텐츠 제작</p>
+        </div>
+      </div>
+      <div class="perspective-body">
+        <table>
+          <thead><tr><th>기능</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td>AI 전략 생성</td><td>채널·메시징·타이밍·예산 전략 자동 생성</td></tr>
+            <tr><td>내러티브 아크</td><td>Tease → Launch → Spread → LastCall 흐름 설계</td></tr>
+            <tr><td>AI 이미지 생성</td><td>컨셉 기반 시딩 이미지 자동 제작</td></tr>
+            <tr><td>AI 카피 편집</td><td>퍼널 단계별 카피 자동 작성</td></tr>
+            <tr><td>훅 뱅크</td><td>12종 훅 유형 라이브러리</td></tr>
+            <tr><td>프로덕션 가이드</td><td>포맷별 제작 가이드라인 생성</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3.3 인플루언서 매칭 -->
+    <div class="perspective-card theme-influencer">
+      <div class="perspective-header">
+        <div class="perspective-icon">&#128101;</div>
+        <div>
+          <h3>인플루언서 매칭</h3>
+          <p>AI 기반 추천 및 파이프라인</p>
+        </div>
+      </div>
+      <div class="perspective-body">
+        <table>
+          <thead><tr><th>기능</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td>AI 매칭</td><td>페르소나 타겟팅 기반 인플루언서 자동 추천</td></tr>
+            <tr><td>딥 프로필</td><td>팔로워·조회수·인게이지먼트 심층 분석</td></tr>
+            <tr><td>AI 콘텐츠 플랜</td><td>인플루언서별 맞춤 콘텐츠 제안</td></tr>
+            <tr><td>상태 관리</td><td>Suggested → Selected → Confirmed → Posted</td></tr>
+            <tr><td>벌크 관리</td><td>다수 인플루언서 일괄 선택·변경</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3.4 실행 관리 -->
+    <div class="perspective-card theme-execution">
+      <div class="perspective-header">
+        <div class="perspective-icon">&#128640;</div>
+        <div>
+          <h3>실행 관리</h3>
+          <p>아웃리치 및 런칭 통합</p>
+        </div>
+      </div>
+      <div class="perspective-body">
+        <table>
+          <thead><tr><th>기능</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td>협업 브리프</td><td>인플루언서별 맞춤 브리프 자동 생성</td></tr>
+            <tr><td>이메일 발송</td><td>아웃리치 이메일 미리보기 및 발송</td></tr>
+            <tr><td>채널 셋업</td><td>TikTok·Instagram·YouTube 배포 설정</td></tr>
+            <tr><td>드롭 관리</td><td>콘텐츠 드롭 타임라인 조율</td></tr>
+            <tr><td>승인 플로우</td><td>런칭 전 최종 승인 프로세스</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3.5 성과 최적화 -->
+    <div class="perspective-card theme-optimize">
+      <div class="perspective-header">
+        <div class="perspective-icon">&#128200;</div>
+        <div>
+          <h3>성과 최적화</h3>
+          <p>실시간 모니터링 및 자동 최적화</p>
+        </div>
+      </div>
+      <div class="perspective-body">
+        <table>
+          <thead><tr><th>기능</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td>실시간 KPI</td><td>노출·인게이지먼트·좋아요 실시간 추적</td></tr>
+            <tr><td>PDA 히트맵</td><td>P x D x A 성과 히트맵 시각화</td></tr>
+            <tr><td>피로도 감지</td><td>오디언스 피로도 경고</td></tr>
+            <tr><td>크리에이티브 로테이션</td><td>저성과 소재 자동 교체 제안</td></tr>
+            <tr><td>채널 리밸런싱</td><td>예산 재배분 최적화</td></tr>
+            <tr><td>UGC 플라이휠</td><td>수확 → 큐레이션 → 증폭 자동 사이클</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 3.6 운영 거버넌스 -->
+    <div class="perspective-card theme-governance">
+      <div class="perspective-header">
+        <div class="perspective-icon">&#128737;</div>
+        <div>
+          <h3>운영 거버넌스</h3>
+          <p>브랜드 관리 및 감사</p>
+        </div>
+      </div>
+      <div class="perspective-body">
+        <table>
+          <thead><tr><th>기능</th><th>설명</th></tr></thead>
+          <tbody>
+            <tr><td>Brand DNA</td><td>미션·톤앤매너·비주얼 스타일 등록</td></tr>
+            <tr><td>정합성 검증</td><td>콘텐츠-브랜드 DNA 일치도 자동 검사</td></tr>
+            <tr><td>감사 로그</td><td>모든 변경 이력 자동 기록</td></tr>
+            <tr><td>권한 관리</td><td>역할별 접근 권한 설정</td></tr>
+            <tr><td>캠페인 템플릿</td><td>반복 사용 가능한 템플릿 갤러리</td></tr>
+            <tr><td>내보내기</td><td>PDF/Excel 보고서 출력</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════ 3. 8-Phase Flow ════════════ -->
+<section class="section">
+  <span class="section-number">3</span>
+  <span class="section-title">8단계 캠페인 워크플로우</span>
+  <p class="section-subtitle">캠페인 설정부터 모니터링까지 전체 흐름</p>
+
+  <div class="phase-flow">
+    <div class="phase-item">
+      <div class="phase-num">Phase 1</div>
+      <div class="phase-title">캠페인 설정</div>
+      <div class="phase-desc">PDA 프레임워크 정의<br>제품 브리프 업로드</div>
+      <span class="phase-arrow">&#8594;</span>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 2</div>
+      <div class="phase-title">전략 수립</div>
+      <div class="phase-desc">AI 전략 생성<br>내러티브 아크 설계</div>
+      <span class="phase-arrow">&#8594;</span>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 3</div>
+      <div class="phase-title">콘텐츠 기획</div>
+      <div class="phase-desc">캘린더 기반<br>콘텐츠 스케줄링</div>
+      <span class="phase-arrow">&#8594;</span>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 4</div>
+      <div class="phase-title">크리에이티브</div>
+      <div class="phase-desc">AI 이미지/카피<br>시나리오 제작</div>
+    </div>
+  </div>
+
+  <div class="phase-flow">
+    <div class="phase-item">
+      <div class="phase-num">Phase 5</div>
+      <div class="phase-title">인플루언서 매칭</div>
+      <div class="phase-desc">AI 추천<br>딥 프로필 분석</div>
+      <span class="phase-arrow">&#8594;</span>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 6</div>
+      <div class="phase-title">아웃리치</div>
+      <div class="phase-desc">브리프 생성<br>이메일 발송·추적</div>
+      <span class="phase-arrow">&#8594;</span>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 7</div>
+      <div class="phase-title">런칭</div>
+      <div class="phase-desc">채널 셋업<br>드롭 코디네이션</div>
+      <span class="phase-arrow">&#8594;</span>
+    </div>
+    <div class="phase-item">
+      <div class="phase-num">Phase 8</div>
+      <div class="phase-title">모니터링</div>
+      <div class="phase-desc">실시간 KPI<br>AI 최적화 제안</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════ 4. Tech Stack ════════════ -->
+<section class="section">
+  <span class="section-number">4</span>
+  <span class="section-title">기술 스택</span>
+  <p class="section-subtitle">플랫폼을 구성하는 핵심 기술 요소</p>
+
+  <div class="tech-grid">
+    <div class="tech-card">
+      <div class="tech-label">Frontend</div>
+      <div class="tech-name">Vite + React</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-label">UI</div>
+      <div class="tech-name">shadcn/ui + Tailwind</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-label">State</div>
+      <div class="tech-name">Redux + React Query</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-label">Chart</div>
+      <div class="tech-name">Recharts</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-label">Backend</div>
+      <div class="tech-name">Node.js + Express</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-label">Database</div>
+      <div class="tech-name">PostgreSQL (AWS RDS)</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-label">AI</div>
+      <div class="tech-name">Google Gemini API</div>
+    </div>
+    <div class="tech-card">
+      <div class="tech-label">Infra</div>
+      <div class="tech-name">AWS</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- ════════════ 5. Conclusion ════════════ -->
+<section class="section">
+  <div class="conclusion-card">
+    <h2>결론 — 6가지 관점의 플랫폼 진화</h2>
+    <div class="conclusion-grid">
+      <div class="conclusion-item">
+        <h4>1. 전략 체계화</h4>
+        <p>감에 의존하던 기획을 PDA 프레임워크 기반 데이터 구조로 전환</p>
+      </div>
+      <div class="conclusion-item">
+        <h4>2. AI 자동화</h4>
+        <p>전략·콘텐츠·매칭 전 과정에 AI를 접목하여 생산성 극대화</p>
+      </div>
+      <div class="conclusion-item">
+        <h4>3. 인플루언서 매칭 고도화</h4>
+        <p>수동 탐색에서 AI 추천 + 파이프라인 관리로 전환</p>
+      </div>
+      <div class="conclusion-item">
+        <h4>4. 실행 관리 통합</h4>
+        <p>외부 도구 의존 없이 아웃리치~런칭까지 플랫폼 내 완결</p>
+      </div>
+      <div class="conclusion-item">
+        <h4>5. 성과 최적화</h4>
+        <p>단순 리포팅에서 실시간 모니터링 + AI 최적화로 고도화</p>
+      </div>
+      <div class="conclusion-item">
+        <h4>6. 운영 거버넌스</h4>
+        <p>Brand DNA·감사 로그·권한 관리로 조직 통제력 확보</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<footer class="footer">
+  <div class="container">
+    FNCO Influencer Seeding Platform &mdash; System Report &middot; 2026.03
+  </div>
+</footer>
+
+</body>
+</html>

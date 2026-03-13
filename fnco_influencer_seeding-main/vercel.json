@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd client && VITE_DEMO_MODE=true npx vite build",
+  "outputDirectory": "client/build",
+  "framework": null,
+  "installCommand": "cd client && npm install",
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}

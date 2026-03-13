@@ -1,0 +1,23 @@
+{
+  "name": "mkt_crolling_web",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "This is a code bundle for Influencer Content Submission UI. The original project is available at https://www.figma.com/design/xluZ9CeyLbebU9IgiHZaNu/Influencer-Content-Submission-UI.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:e2e": "npx playwright test",
+    "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "concurrently": "^9.2.1",
+    "helmet": "^8.1.0",
+    "treee": "^0.1.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
+}

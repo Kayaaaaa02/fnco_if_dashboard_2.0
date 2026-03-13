@@ -1,0 +1,36 @@
+# Project Rules
+
+## 기존 화면/컴포넌트 보호 규칙 (절대 준수)
+
+1. **기존 구현된 화면(컴포넌트, 페이지)을 절대 삭제하거나 기능을 제거하지 않는다.**
+   - 새 기능 추가 시 기존 컴포넌트의 JSX 구조, 로직, 스타일을 임의로 변경/삭제하지 않는다.
+   - 리팩토링이 필요한 경우 반드시 사용자에게 확인을 받은 후 진행한다.
+
+2. **파일 삭제 금지**: `client/src/components/`, `client/src/pages/` 하위의 기존 파일을 삭제하지 않는다.
+
+3. **기존 라우트 보호**: 이미 등록된 라우트 경로를 제거하거나 변경하지 않는다.
+
+4. **기존 API 엔드포인트 보호**: `server/src/routes/`, `server/src/controllers/` 하위의 기존 엔드포인트를 삭제하거나 동작을 변경하지 않는다.
+
+5. **변경이 필요한 경우**: 기존 화면이나 로직을 수정해야 할 때는 반드시 사용자에게 "이 화면/로직을 수정해도 되겠습니까?"라고 확인을 받고 나서 진행한다.
+
+## PDA 프레임워크 설정 화면 — 수정 금지 (사용자 확정)
+
+아래 파일들은 완성된 화면으로, 사용자가 명시적으로 수정 금지를 지시했다. **어떤 이유로든 수정하지 않는다.**
+
+- `client/src/components/pda/PDASetup.jsx`
+- `client/src/components/pda/ConceptGrid.jsx`
+- `client/src/components/pda/PDAMatrix.jsx`
+- `client/src/components/pda/ProductBrief.jsx`
+- `client/src/components/pda/PersonaEditor.jsx`
+- `client/src/components/pda/DesireEditor.jsx`
+- `client/src/components/pda/ConceptCard.jsx`
+- `client/src/hooks/usePDA.js`
+- `server/src/routes/pda.js`
+- `server/src/controllers/pdaController.js`
+
+## 고정 목데이터 보호 규칙
+
+1. **'쉬어 벨벳 베일 틴트' 캠페인 목데이터**(`MOCK_VELVET_TINT_ID`, `mockVelvetTintCampaign`, `mockVelvetTintHub`, `mockVelvetTintPDA`)는 로직 확인용 고정 데이터이므로 수정/삭제하지 않는다.
+
+2. 해당 캠페인에 연결된 화면이나 로직도 변형하지 않는다.

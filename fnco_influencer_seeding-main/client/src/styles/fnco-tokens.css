@@ -1,0 +1,119 @@
+:root {
+  --fnco-canvas: #f3f5f9;
+  --fnco-surface: #ffffff;
+  --fnco-surface-muted: #f7f9fc;
+  --fnco-sidebar: #e7ecf4;
+  --fnco-border: #d8dfea;
+  --fnco-border-strong: #c7d0df;
+  --fnco-text: #0f172a;
+  --fnco-text-subtle: #667085;
+  --fnco-primary: #2f5aff;
+  --fnco-primary-soft: #dbe6ff;
+  --fnco-success: #10b981;
+  --fnco-success-soft: #dcfce7;
+  --fnco-warning: #f59e0b;
+  --fnco-warning-soft: #fef3c7;
+  --fnco-danger: #ef4444;
+  --fnco-danger-soft: #fee2e2;
+  --fnco-geo: #0f9f8f;
+  --fnco-geo-soft: #d1fae5;
+  --fnco-radius-sm: 10px;
+  --fnco-radius-md: 14px;
+  --fnco-radius-lg: 18px;
+  --fnco-shadow-card: 0 10px 24px rgba(15, 23, 42, 0.06);
+  --fnco-shadow-panel: 0 16px 34px rgba(15, 23, 42, 0.08);
+}
+
+.fnco-grid-kpi-4 {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+.fnco-grid-kpi-3 {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+.fnco-creator-filter-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+.fnco-content-filter-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+.fnco-creator-network-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+.fnco-content-main-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+.fnco-analytics-main-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+.fnco-content-card-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 900px) {
+  .fnco-grid-kpi-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fnco-grid-kpi-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .fnco-content-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .fnco-grid-kpi-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .fnco-creator-filter-grid {
+    grid-template-columns: 2.4fr 1fr 1fr 1fr 1fr auto auto;
+    align-items: end;
+  }
+
+  .fnco-content-filter-grid {
+    grid-template-columns: 2.2fr 1fr 1fr 1fr 1fr 1fr auto;
+    align-items: end;
+  }
+
+  .fnco-creator-network-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .fnco-content-main-grid {
+    grid-template-columns: 3fr 1.05fr;
+  }
+
+  .fnco-analytics-main-grid {
+    grid-template-columns: 1.2fr 1fr;
+  }
+
+  .fnco-content-card-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
