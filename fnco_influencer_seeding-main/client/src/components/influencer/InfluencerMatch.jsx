@@ -112,9 +112,9 @@ function matchInfluencerToPersona(influencer, personas) {
   personas.forEach((p) => {
     const profile = p.profile_json || {};
     const keywords = [
-      ...(profile.pain_points || '').split(/[,，\s]+/),
-      ...(profile.keyword || '').replace(/#/g, '').split(/\s+/),
-      ...(profile.behavior || '').split(/[,，\s]+/),
+      ...(Array.isArray(profile.pain_points) ? profile.pain_points : (profile.pain_points || '').split(/[,，\s]+/)),
+      ...(Array.isArray(profile.keyword) ? profile.keyword : (profile.keyword || '').replace(/#/g, '').split(/\s+/)),
+      ...(Array.isArray(profile.behavior) ? profile.behavior : (profile.behavior || '').split(/[,，\s]+/)),
       p.name,
     ].filter(Boolean).map((k) => k.toLowerCase().trim()).filter((k) => k.length > 1);
 

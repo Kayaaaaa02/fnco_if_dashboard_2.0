@@ -1,10 +1,9 @@
 /**
  * 채널 배분 스코어링 엔진
- * 3단계 다중 요인 스코어링으로 PDA 컨셉을 최적 채널에 배분합니다.
+ * 2단계 다중 요인 스코어링으로 PDA 컨셉을 최적 채널에 배분합니다.
  *
- * 1단계: 페르소나 선호 채널 (가중치 50%)
- * 2단계: 퍼널 × 채널 적합도 (가중치 30%)
- * 3단계: 포맷 호환성 (가중치 20%)
+ * 1단계: 페르소나 선호 채널 (가중치 60%)
+ * 2단계: 퍼널 × 채널 적합도 (가중치 40%)
  */
 
 const PLATFORMS = ['Instagram', 'TikTok', 'YouTube'];
@@ -42,36 +41,12 @@ function getFunnelScore(funnel, platform) {
   return FUNNEL_FIT[funnel]?.[platform] ?? 0.3;
 }
 
-/* ── 3단계: 포맷 호환성 ── */
-const FORMAT_MAP = {
-  // Instagram formats
-  'reels': 'Instagram', 'reel': 'Instagram', 'carousel': 'Instagram',
-  'story': 'Instagram', 'stories': 'Instagram', 'ig': 'Instagram',
-  // TikTok formats
-  'tiktok': 'TikTok', 'shorts': 'TikTok', '15s': 'TikTok',
-  'short': 'TikTok', '숏폼': 'TikTok',
-  // YouTube formats
-  'video': 'YouTube', 'youtube': 'YouTube', '롱폼': 'YouTube',
-  'long': 'YouTube', 'review': 'YouTube', '리뷰': 'YouTube',
-};
-
-function getFormatScore(format, platform) {
-  if (!format) return 0.33; // 균등
-  const lower = format.toLowerCase();
-  for (const [keyword, matchPlatform] of Object.entries(FORMAT_MAP)) {
-    if (lower.includes(keyword)) {
-      return matchPlatform === platform ? 1.0 : 0.2;
-    }
-  }
-  return 0.33;
-}
-
 /* ── 종합 스코어 계산 ── */
-const WEIGHTS = { persona: 0.5, funnel: 0.3, format: 0.2 };
+const WEIGHTS = { persona: 0.6, funnel: 0.4 };
 
 /**
  * 컨셉에 대해 각 플랫폼의 적합도 점수를 계산합니다.
- * @param {Object} concept - PDA 컨셉 (funnel, format 필드 포함)
+ * @param {Object} concept - PDA 컨셉 (funnel 필드 포함)
  * @param {string} personaMedia - 페르소나의 media 문자열 (예: "Instagram, YouTube")
  * @returns {{ platform: string, scores: Object }} 최적 플랫폼과 점수 상세
  */
@@ -82,15 +57,13 @@ export function scoreConcept(concept, personaMedia) {
   PLATFORMS.forEach((platform) => {
     const pScore = personaScores[platform] || 0.1;
     const fScore = getFunnelScore(concept.funnel, platform);
-    const formatScore = getFormatScore(concept.format, platform);
 
-    const total = (pScore * WEIGHTS.persona) + (fScore * WEIGHTS.funnel) + (formatScore * WEIGHTS.format);
+    const total = (pScore * WEIGHTS.persona) + (fScore * WEIGHTS.funnel);
 
     results[platform] = {
       total: Math.round(total * 100),
       persona: Math.round(pScore * 100),
       funnel: Math.round(fScore * 100),
-      format: Math.round(formatScore * 100),
     };
   });
 

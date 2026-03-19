@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
-import { Sparkles, SkipForward, ArrowLeft, ArrowRight, Upload, RefreshCw, Save, AlertTriangle, Eye, Music, Heart, Image as ImageIcon, User, Film, Play, CheckCircle2, Loader2 } from 'lucide-react';
+import { Sparkles, SkipForward, ArrowLeft, ArrowRight, Upload, RefreshCw, Save, AlertTriangle, Eye, Music, Heart, Image as ImageIcon, User, Film, Play, CheckCircle2, Loader2, Mic, Volume2 } from 'lucide-react';
 import { tokens } from '@/styles/designTokens.js';
+import { useGenerateNarration } from '@/hooks/useTypecast.js';
 
 const ACCENT = '#7c3aed';
 const ACCENT_BG = '#f5f3ff';
@@ -57,12 +58,30 @@ function generateDefaultPrompt(creative, stepIdx) {
   return `Natural smartphone selfie, iPhone 15 Pro front camera 12MP TrueDepth camera, still frame from a high-quality viral beauty review. Extreme macro close-up focusing on the butterfly zone-the area beside the nose and inner cheek-of a young Korean woman in her early 20s. She has a sophisticated and confident expression, styled as a skincare expert with neat hair and a clean white elegant blouse. The physical action is the application of ${product} in a smooth sliding motion across the nose bridge and cheek area.`;
 }
 
+const VOICE_GENDER = [
+  { value: 'female', label: '여자' },
+  { value: 'male', label: '남자' },
+];
+const VOICE_TONE = [
+  { value: 'bright', label: '밝은' },
+  { value: 'calm', label: '차분한' },
+];
+const EMOTION_PRESETS = [
+  { value: 'normal', label: 'Normal', color: '#6b7280' },
+  { value: 'happy', label: 'Happy', color: '#f59e0b' },
+  { value: 'sad', label: 'Sad', color: '#6366f1' },
+  { value: 'angry', label: 'Angry', color: '#ef4444' },
+  { value: 'whisper', label: 'Whisper', color: '#8b5cf6' },
+  { value: 'toneup', label: 'Tone Up', color: '#10b981' },
+  { value: 'tonedown', label: 'Tone Down', color: '#0ea5e9' },
+];
+
 /* ── Placeholder generated images ── */
 const PLACEHOLDER_IMAGES = [
-  'https://images.unsplash.com/photo-1616394584738-fc6e612e71b8?w=200&h=260&fit=crop',
-  'https://images.unsplash.com/photo-1596755389378-c31d21fd1273?w=200&h=260&fit=crop',
-  'https://images.unsplash.com/photo-1519699047748-de8e457a634e?w=200&h=260&fit=crop',
-  'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&h=260&fit=crop',
+  '/ref-image-1.jfif',
+  '/ref-image-1.jfif',
+  '/ref-image-1.jfif',
+  '/ref-image-1.jfif',
 ];
 
 export default function AIImageEditor({ creative, campaign, onBack, onNext, onSave, initialView }) {
@@ -76,12 +95,36 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
     DEFAULT_STEPS.forEach((s) => { obj[s.key] = generateDefaultPrompt(creative, s.key); });
     return obj;
   });
-  const [savedImagesByStep, setSavedImagesByStep] = useState({});
+  const [savedImagesByStep, setSavedImagesByStep] = useState(() => {
+    const init = {};
+    const imgs = creative?.ai_images || [];
+    imgs.forEach((img) => {
+      if (img.is_selected && img.url) {
+        const step = img.step || 1;
+        if (!init[step]) init[step] = [];
+        if (init[step].length < 3) init[step].push(img.url);
+      }
+    });
+    return init;
+  });
   const [generatedImages, setGeneratedImages] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   // 영상 생성 관련 상태: 'idle' | 'generating' | 'done'
   const [videoState, setVideoState] = useState(initialView === 'video' ? 'done' : 'idle');
   const [showVideoPreview, setShowVideoPreview] = useState(false);
+  // 나레이션 설정
+  const [narrationByStep, setNarrationByStep] = useState({});
+  const [voiceGender, setVoiceGender] = useState('female');
+  const [voiceTone, setVoiceTone] = useState('bright');
+  // STEP별 나레이션 생성 상태: { [stepKey]: 'idle' | 'generating' | 'done' }
+  const [narrationGenState, setNarrationGenState] = useState({});
+  // STEP별 생성된 오디오 URL
+  const [audioByStep, setAudioByStep] = useState({});
+  // STEP별 감정 프리셋
+  const [emotionByStep, setEmotionByStep] = useState({});
+  const getEmotion = (stepKey) => emotionByStep[stepKey] || 'normal';
+
+  const tts = useGenerateNarration();
 
   const scenarioRows = useMemo(() => buildStepScenario(creative), [creative]);
   const STEPS = useMemo(() => {
@@ -95,6 +138,45 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
   }, [scenarioRows]);
   const currentRow = scenarioRows[activeStep - 1] || scenarioRows[0];
   const styleInfo = STYLE_OPTIONS.find((s) => s.value === selectedStyle) || STYLE_OPTIONS[0];
+
+  // 나레이션 초기값을 시나리오 audio에서 가져오기
+  const getNarration = (stepKey) => narrationByStep[stepKey] ?? (scenarioRows[stepKey - 1]?.audio || '');
+
+  // STEP별 나레이션 Typecast TTS 생성 + 자동 저장
+  const handleGenerateNarration = (stepKey) => {
+    const text = getNarration(stepKey);
+    if (!text || text.trim().length === 0) return;
+
+    setNarrationGenState((prev) => ({ ...prev, [stepKey]: 'generating' }));
+
+    tts.mutate(
+      { text, gender: voiceGender, tone: voiceTone, emotion: getEmotion(stepKey) },
+      {
+        onSuccess: (data) => {
+          setNarrationGenState((prev) => ({ ...prev, [stepKey]: 'done' }));
+          setAudioByStep((prev) => ({ ...prev, [stepKey]: data.audio_url }));
+          // 자동 저장
+          if (onSave) {
+            onSave({
+              ai_editor_data: {
+                saved_images: savedImagesByStep,
+                selected_style: selectedStyle,
+                prompts: promptByStep,
+                video_generated: videoState === 'done',
+                narrations: Object.fromEntries(STEPS.map((s) => [s.key, getNarration(s.key)])),
+                emotions: Object.fromEntries(STEPS.map((s) => [s.key, getEmotion(s.key)])),
+                voice: { gender: voiceGender, tone: voiceTone },
+                audio_urls: { ...audioByStep, [stepKey]: data.audio_url },
+              },
+            }).catch(() => {});
+          }
+        },
+        onError: () => {
+          setNarrationGenState((prev) => ({ ...prev, [stepKey]: 'idle' }));
+        },
+      },
+    );
+  };
 
   const productCategory = campaign?.category || creative?.category || '선케어';
   const productSubcategory = campaign?.subcategory || creative?.subcategory || '선스틱';
@@ -147,6 +229,9 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
           selected_style: selectedStyle,
           prompts: promptByStep,
           video_generated: videoState === 'done',
+          narrations: Object.fromEntries(STEPS.map((s) => [s.key, getNarration(s.key)])),
+          emotions: Object.fromEntries(STEPS.map((s) => [s.key, getEmotion(s.key)])),
+          voice: { gender: voiceGender, tone: voiceTone },
         },
       });
       setImageSaved(true);
@@ -159,8 +244,10 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
     }
   };
 
-  /* ── 영상 생성 중 / 완료 화면 ── */
-  if (videoState === 'generating' || videoState === 'done') {
+  /* ── AI 통합 영상 생성 페이지 ── */
+  if (videoState !== 'idle') {
+    const allStepImages = STEPS.map((s) => (savedImagesByStep[s.key] || [])[0]).filter(Boolean);
+
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
 
@@ -168,7 +255,7 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
         <div style={{
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '20px 24px', borderRadius: 14,
-          background: `linear-gradient(135deg, #2563eb, #0ea5e9)`,
+          background: 'linear-gradient(135deg, #2563eb, #0ea5e9)',
           marginBottom: 16,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
@@ -180,18 +267,29 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
               <Film style={{ width: 20, height: 20, color: '#fff' }} />
             </div>
             <div>
-              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fff', margin: 0 }}>AI 영상 생성</h2>
+              <h2 style={{ fontSize: 18, fontWeight: 800, color: '#fff', margin: 0 }}>AI 영상 + 나레이션 생성</h2>
               <p style={{ fontSize: 12, color: 'rgba(255,255,255,.8)', margin: '2px 0 0' }}>
-                생성된 이미지를 기반으로 AI 영상을 제작합니다.
+                AI 이미지와 시나리오를 기반으로 나레이션 포함 통영상을 생성합니다.
               </p>
             </div>
           </div>
+          <button
+            onClick={() => setVideoState('idle')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '8px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
+              background: 'rgba(255,255,255,.2)', color: '#fff', border: 'none', cursor: 'pointer',
+            }}
+          >
+            <ArrowLeft style={{ width: 14, height: 14 }} />
+            이미지 편집으로
+          </button>
         </div>
 
         {/* Scenario Info Bar */}
         <div style={{
           padding: '14px 20px', borderRadius: 10,
-          background: '#1e1b4b', color: '#fff', marginBottom: 20,
+          background: '#1e1b4b', color: '#fff', marginBottom: 16,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <Sparkles style={{ width: 14, height: 14, color: '#a78bfa' }} />
@@ -204,13 +302,181 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
           </div>
         </div>
 
-        {/* Main Content */}
-        {videoState === 'generating' ? (
+        {/* STEP별 참고 이미지 요약 */}
+        <div style={{
+          padding: '18px 20px', borderRadius: 12,
+          border: `1px solid ${tokens.color.border}`,
+          background: tokens.color.surface, marginBottom: 16,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <ImageIcon style={{ width: 14, height: 14, color: ACCENT }} />
+            <h4 style={{ fontSize: 14, fontWeight: 700, color: tokens.color.text, margin: 0 }}>STEP별 참고 이미지</h4>
+            {allStepImages.length === 0 && (
+              <span style={{ fontSize: 11, color: '#ef4444', fontWeight: 600 }}>이미지를 먼저 생성해주세요</span>
+            )}
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(${STEPS.length}, 1fr)`, gap: 10 }}>
+            {STEPS.map((step) => (
+              <div key={step.key} style={{ textAlign: 'center' }}>
+                <p style={{ fontSize: 10, fontWeight: 700, color: ACCENT, margin: '0 0 6px' }}>{step.label}</p>
+                <div style={{
+                  borderRadius: 8, overflow: 'hidden',
+                  border: `1px solid ${ACCENT_BORDER}`,
+                  aspectRatio: '3/4', background: '#f8fafc',
+                }}>
+                  {(savedImagesByStep[step.key] || [])[0] ? (
+                    <img src={savedImagesByStep[step.key][0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                      <ImageIcon style={{ width: 20, height: 20, color: '#cbd5e1' }} />
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 목소리 설정 + STEP별 나레이션 */}
+        <div style={{
+          padding: '18px 20px', borderRadius: 12,
+          border: `1px solid ${tokens.color.border}`,
+          background: tokens.color.surface, marginBottom: 16,
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Mic style={{ width: 14, height: 14, color: ACCENT }} />
+              <h4 style={{ fontSize: 14, fontWeight: 700, color: tokens.color.text, margin: 0 }}>나레이션 설정</h4>
+            </div>
+          </div>
+
+          {/* 성별 + 톤 선택 (공통) */}
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16,
+            padding: '12px 16px', borderRadius: 10,
+            background: ACCENT_BG, border: `1px solid ${ACCENT_BORDER}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: tokens.color.text }}>성별</span>
+              {VOICE_GENDER.map((g) => (
+                <button key={g.value} type="button" onClick={() => setVoiceGender(g.value)} style={{
+                  padding: '5px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                  border: voiceGender === g.value ? `2px solid ${ACCENT}` : `1px solid ${tokens.color.border}`,
+                  background: voiceGender === g.value ? '#fff' : '#f8fafc',
+                  color: voiceGender === g.value ? ACCENT : tokens.color.textSubtle,
+                  cursor: 'pointer',
+                }}>{g.label}</button>
+              ))}
+            </div>
+            <div style={{ width: 1, height: 24, background: ACCENT_BORDER }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: 12, fontWeight: 700, color: tokens.color.text }}>톤</span>
+              {VOICE_TONE.map((t) => (
+                <button key={t.value} type="button" onClick={() => setVoiceTone(t.value)} style={{
+                  padding: '5px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                  border: voiceTone === t.value ? `2px solid ${ACCENT}` : `1px solid ${tokens.color.border}`,
+                  background: voiceTone === t.value ? '#fff' : '#f8fafc',
+                  color: voiceTone === t.value ? ACCENT : tokens.color.textSubtle,
+                  cursor: 'pointer',
+                }}>{t.label}</button>
+              ))}
+            </div>
+          </div>
+
+          {/* STEP별 나레이션 + 감정 프리셋 */}
+          {STEPS.map((step) => {
+            const genState = narrationGenState[step.key] || 'idle';
+            const currentEmotion = getEmotion(step.key);
+            return (
+              <div key={step.key} style={{
+                padding: '12px 14px', borderRadius: 8,
+                border: `1px solid ${tokens.color.border}`,
+                background: '#fafafa', marginBottom: step.key < STEPS.length ? 8 : 0,
+              }}>
+                {/* 상단: STEP 라벨 + 텍스트 + 생성 버튼 */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <span style={{
+                    fontSize: 10, fontWeight: 700, padding: '4px 8px', borderRadius: 5,
+                    background: ACCENT, color: '#fff', whiteSpace: 'nowrap', marginTop: 4,
+                  }}>{step.label}</span>
+                  <textarea
+                    value={getNarration(step.key)}
+                    onChange={(e) => setNarrationByStep((prev) => ({ ...prev, [step.key]: e.target.value }))}
+                    placeholder="나레이션 내용..."
+                    rows={2}
+                    style={{
+                      flex: 1, padding: '6px 10px', borderRadius: 6,
+                      border: `1px solid ${tokens.color.border}`,
+                      fontSize: 12, lineHeight: 1.5, color: tokens.color.text,
+                      resize: 'vertical', background: '#fff',
+                    }}
+                  />
+                  <button
+                    onClick={() => handleGenerateNarration(step.key)}
+                    disabled={genState === 'generating'}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 4,
+                      padding: '6px 12px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                      border: 'none', whiteSpace: 'nowrap', marginTop: 4,
+                      background: genState === 'done' ? '#059669' : genState === 'generating' ? '#94a3b8' : ACCENT,
+                      color: '#fff', cursor: genState === 'generating' ? 'not-allowed' : 'pointer',
+                    }}
+                  >
+                    {genState === 'generating' ? (
+                      <><Loader2 style={{ width: 12, height: 12, animation: 'spin 1s linear infinite' }} /> 생성중</>
+                    ) : genState === 'done' ? (
+                      <><CheckCircle2 style={{ width: 12, height: 12 }} /> 완료</>
+                    ) : (
+                      <><Volume2 style={{ width: 12, height: 12 }} /> 생성</>
+                    )}
+                  </button>
+                  {audioByStep[step.key] && (
+                    <button
+                      onClick={() => new Audio(audioByStep[step.key]).play()}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 4,
+                        padding: '6px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+                        border: `1px solid ${tokens.color.border}`, whiteSpace: 'nowrap', marginTop: 4,
+                        background: '#fff', color: '#2563eb', cursor: 'pointer',
+                      }}
+                    >
+                      <Play style={{ width: 10, height: 10 }} /> 재생
+                    </button>
+                  )}
+                </div>
+                {/* 하단: 감정 프리셋 */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 8, paddingLeft: 60 }}>
+                  <span style={{ fontSize: 10, color: '#94a3b8', fontWeight: 600, marginRight: 2 }}>감정</span>
+                  {EMOTION_PRESETS.map((preset) => {
+                    const isActive = currentEmotion === preset.value;
+                    return (
+                      <button
+                        key={preset.value}
+                        type="button"
+                        onClick={() => setEmotionByStep((prev) => ({ ...prev, [step.key]: preset.value }))}
+                        style={{
+                          padding: '3px 8px', borderRadius: 5, fontSize: 10, fontWeight: 600,
+                          border: isActive ? `2px solid ${preset.color}` : `1px solid ${tokens.color.border}`,
+                          background: isActive ? `${preset.color}18` : '#fff',
+                          color: isActive ? preset.color : '#94a3b8',
+                          cursor: 'pointer', transition: 'all .12s',
+                        }}
+                      >{preset.label}</button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 영상 생성 결과 / 생성 중 */}
+        {videoState === 'generating' && (
           <div style={{
             borderRadius: 14, border: `1px solid ${ACCENT_BORDER}`,
-            background: '#f8fafc', padding: '80px 40px',
+            background: '#f8fafc', padding: '60px 40px',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20,
-            marginBottom: 20,
+            marginBottom: 16,
           }}>
             <div style={{
               width: 80, height: 80, borderRadius: '50%',
@@ -223,13 +489,13 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
             <style>{`@keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.85; } }`}</style>
             <div style={{ textAlign: 'center' }}>
               <h3 style={{ fontSize: 20, fontWeight: 800, color: '#1e293b', margin: '0 0 8px' }}>
-                AI 영상 생성 중...
+                AI 영상 + 나레이션 생성 중...
               </h3>
               <p style={{ fontSize: 14, color: '#64748b', margin: '0 0 4px' }}>
-                생성된 이미지와 시나리오를 기반으로 영상을 제작하고 있습니다.
+                STEP별 이미지, 시나리오, 나레이션 톤을 합성하고 있습니다.
               </p>
               <p style={{ fontSize: 12, color: '#94a3b8', margin: 0 }}>
-                약 1~3분 정도 소요될 수 있습니다. 잠시만 기다려 주세요.
+                약 2~5분 정도 소요될 수 있습니다.
               </p>
             </div>
             <div style={{
@@ -244,12 +510,12 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
             </div>
             <style>{`@keyframes progress { 0% { width: 5%; } 50% { width: 70%; } 100% { width: 95%; } }`}</style>
           </div>
-        ) : (
-          /* videoState === 'done' */
+        )}
+
+        {videoState === 'done' && (
           <div style={{
             borderRadius: 14, border: `1px solid ${ACCENT_BORDER}`,
-            background: '#fff', overflow: 'hidden',
-            marginBottom: 20,
+            background: '#fff', overflow: 'hidden', marginBottom: 16,
           }}>
             {/* 완료 배너 */}
             <div style={{
@@ -260,23 +526,22 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
             }}>
               <CheckCircle2 style={{ width: 24, height: 24, color: '#059669' }} />
               <div>
-                <p style={{ fontSize: 15, fontWeight: 700, color: '#065f46', margin: 0 }}>AI 영상 생성이 완료되었습니다!</p>
-                <p style={{ fontSize: 12, color: '#047857', margin: '2px 0 0' }}>아래에서 생성된 영상을 확인하세요.</p>
+                <p style={{ fontSize: 15, fontWeight: 700, color: '#065f46', margin: 0 }}>AI 영상 생성 완료!</p>
+                <p style={{ fontSize: 12, color: '#047857', margin: '2px 0 0' }}>나레이션이 포함된 통영상이 생성되었습니다.</p>
               </div>
             </div>
 
-            {/* 영상 미리보기 영역 */}
+            {/* 영상 미리보기 */}
             <div style={{ padding: '24px' }}>
               <div style={{
                 borderRadius: 12, overflow: 'hidden',
-                background: '#000', aspectRatio: '16/9',
+                background: '#000', aspectRatio: '9/16', maxHeight: 480, margin: '0 auto',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 position: 'relative', cursor: 'pointer',
-                border: '1px solid #334155',
+                border: '1px solid #334155', maxWidth: 270,
               }}
                 onClick={() => setShowVideoPreview(!showVideoPreview)}
               >
-                {/* 썸네일 이미지 (저장된 첫번째 이미지 또는 placeholder) */}
                 {(savedImagesByStep[1]?.[0] || PLACEHOLDER_IMAGES[0]) && (
                   <img
                     src={savedImagesByStep[1]?.[0] || PLACEHOLDER_IMAGES[0]}
@@ -284,51 +549,61 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
                     style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.6 }}
                   />
                 )}
-                {/* 재생 버튼 오버레이 */}
                 <div style={{
                   position: 'absolute', top: '50%', left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  width: 64, height: 64, borderRadius: '50%',
+                  width: 56, height: 56, borderRadius: '50%',
                   background: 'rgba(255,255,255,.9)',
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   boxShadow: '0 4px 20px rgba(0,0,0,.3)',
                 }}>
-                  <Play style={{ width: 28, height: 28, color: '#1e293b', marginLeft: 3 }} />
+                  <Play style={{ width: 24, height: 24, color: '#1e293b', marginLeft: 2 }} />
                 </div>
-                {/* 하단 정보 바 */}
                 <div style={{
                   position: 'absolute', bottom: 0, left: 0, right: 0,
-                  padding: '12px 16px',
+                  padding: '10px 14px',
                   background: 'linear-gradient(transparent, rgba(0,0,0,.7))',
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{scenarioTitle}</span>
-                  <span style={{ fontSize: 11, color: '#cbd5e1', background: 'rgba(0,0,0,.4)', padding: '2px 8px', borderRadius: 4 }}>{runtime}</span>
+                  <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>{scenarioTitle}</span>
+                  <span style={{ fontSize: 10, color: '#cbd5e1', background: 'rgba(0,0,0,.4)', padding: '2px 6px', borderRadius: 4 }}>{runtime}</span>
                 </div>
               </div>
 
-              {/* STEP별 사용된 이미지 요약 */}
+              {/* 나레이션 요약 */}
               <div style={{ marginTop: 16 }}>
-                <p style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', margin: '0 0 10px' }}>STEP별 사용 이미지</p>
-                <div style={{ display: 'grid', gridTemplateColumns: `repeat(${STEPS.length}, 1fr)`, gap: 10 }}>
-                  {STEPS.map((step) => (
-                    <div key={step.key} style={{ textAlign: 'center' }}>
-                      <p style={{ fontSize: 10, fontWeight: 700, color: ACCENT, margin: '0 0 6px' }}>{step.label}</p>
-                      <div style={{
-                        borderRadius: 8, overflow: 'hidden',
-                        border: `1px solid ${ACCENT_BORDER}`,
-                        aspectRatio: '3/4', background: '#f8fafc',
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                  <p style={{ fontSize: 13, fontWeight: 700, color: '#1e293b', margin: 0 }}>나레이션 요약</p>
+                  <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4, background: ACCENT_BG, color: ACCENT }}>
+                    {VOICE_GENDER.find((g) => g.value === voiceGender)?.label} · {VOICE_TONE.find((t) => t.value === voiceTone)?.label}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {STEPS.map((step) => {
+                    const em = EMOTION_PRESETS.find((e) => e.value === getEmotion(step.key)) || EMOTION_PRESETS[0];
+                    return (
+                      <div key={step.key} style={{
+                        display: 'flex', alignItems: 'flex-start', gap: 10,
+                        padding: '8px 12px', borderRadius: 8,
+                        background: '#f8fafc', border: `1px solid ${tokens.color.border}`,
                       }}>
-                        {(savedImagesByStep[step.key] || [])[0] ? (
-                          <img src={savedImagesByStep[step.key][0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                        ) : (
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                            <ImageIcon style={{ width: 20, height: 20, color: '#cbd5e1' }} />
-                          </div>
+                        <span style={{
+                          fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 4,
+                          background: ACCENT, color: '#fff', whiteSpace: 'nowrap', marginTop: 2,
+                        }}>{step.label}</span>
+                        <p style={{ fontSize: 11, color: '#475569', lineHeight: 1.5, margin: 0, flex: 1 }}>
+                          {getNarration(step.key) || '(나레이션 없음)'}
+                        </p>
+                        <span style={{
+                          fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4,
+                          background: `${em.color}15`, color: em.color, whiteSpace: 'nowrap', marginTop: 2,
+                        }}>{em.label}</span>
+                        {narrationGenState[step.key] === 'done' && (
+                          <CheckCircle2 style={{ width: 14, height: 14, color: '#059669', flexShrink: 0, marginTop: 2 }} />
                         )}
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -336,60 +611,66 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
         )}
 
         {/* Bottom Actions */}
-        <div style={{ display: 'grid', gridTemplateColumns: videoState === 'done' ? '1fr 1fr' : '1fr', gap: 12 }}>
-          {videoState === 'done' && (
-            <button
-              onClick={handleSaveToDB}
-              disabled={isSaving}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                padding: '14px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                border: 'none',
-                background: saveSuccess ? 'linear-gradient(135deg, #059669, #10b981)' : 'linear-gradient(135deg, #2563eb, #0ea5e9)',
-                color: '#fff', cursor: isSaving ? 'not-allowed' : 'pointer',
-                opacity: isSaving ? 0.7 : 1,
-                transition: 'background .3s',
-              }}
-            >
-              {isSaving ? (
-                <Loader2 style={{ width: 16, height: 16, animation: 'spin 1.5s linear infinite' }} />
-              ) : saveSuccess ? (
-                <CheckCircle2 style={{ width: 16, height: 16 }} />
-              ) : (
-                <Save style={{ width: 16, height: 16 }} />
-              )}
-              {isSaving ? '저장 중...' : saveSuccess ? '저장 완료!' : '저장하기'}
-            </button>
-          )}
-          {videoState === 'done' && (
-            <button
-              onClick={onNext}
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                padding: '14px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                border: 'none',
-                background: `linear-gradient(135deg, ${ACCENT}, #6366f1)`,
-                color: '#fff', cursor: 'pointer',
-              }}
-            >
-              <ArrowRight style={{ width: 16, height: 16 }} />
-              최종 편집하기
-            </button>
-          )}
-          {videoState === 'generating' && (
-            <button
-              disabled
-              style={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                padding: '14px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-                border: 'none',
-                background: '#94a3b8',
-                color: '#fff', cursor: 'not-allowed', opacity: 0.7,
-              }}
-            >
+        <div style={{ display: 'grid', gridTemplateColumns: videoState === 'done' ? '1fr 1fr 1fr' : '1fr', gap: 12 }}>
+          {videoState === 'generating' ? (
+            <button disabled style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+              padding: '14px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+              border: 'none', background: '#94a3b8', color: '#fff', cursor: 'not-allowed', opacity: 0.7,
+            }}>
               <Loader2 style={{ width: 16, height: 16, animation: 'spin 1.5s linear infinite' }} />
               영상 생성 중...
             </button>
+          ) : (
+            <>
+              <button
+                onClick={handleStartVideoGeneration}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  padding: '14px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #2563eb, #0ea5e9)',
+                  color: '#fff', cursor: 'pointer',
+                }}
+              >
+                <Film style={{ width: 16, height: 16 }} />
+                {videoState === 'done' ? '다시 생성' : '영상 생성하기'}
+              </button>
+              {videoState === 'done' && (
+                <>
+                  <button
+                    onClick={handleSaveToDB}
+                    disabled={isSaving}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      padding: '14px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                      border: 'none',
+                      background: saveSuccess ? 'linear-gradient(135deg, #059669, #10b981)' : `linear-gradient(135deg, ${ACCENT}, #6366f1)`,
+                      color: '#fff', cursor: isSaving ? 'not-allowed' : 'pointer',
+                      opacity: isSaving ? 0.7 : 1,
+                    }}
+                  >
+                    {isSaving ? <Loader2 style={{ width: 16, height: 16, animation: 'spin 1.5s linear infinite' }} /> :
+                      saveSuccess ? <CheckCircle2 style={{ width: 16, height: 16 }} /> :
+                      <Save style={{ width: 16, height: 16 }} />}
+                    {isSaving ? '저장 중...' : saveSuccess ? '저장 완료!' : '저장하기'}
+                  </button>
+                  <button
+                    onClick={onNext}
+                    style={{
+                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                      padding: '14px', borderRadius: 10, fontSize: 14, fontWeight: 700,
+                      border: 'none',
+                      background: '#1e293b',
+                      color: '#fff', cursor: 'pointer',
+                    }}
+                  >
+                    <ArrowRight style={{ width: 16, height: 16 }} />
+                    최종 편집하기
+                  </button>
+                </>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -676,8 +957,8 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
             </div>
           </div>
 
-          {/* Image Attachments: Product + Model */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          {/* Image Attachments: Product + Model + Reference */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
             {/* Product Image */}
             <div style={{
               padding: '16px', borderRadius: 12,
@@ -691,7 +972,7 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
                 </h4>
               </div>
               <p style={{ fontSize: 10, color: tokens.color.textSubtle, margin: '0 0 10px' }}>
-                제품 이미지를 참고하여 프롬프트를 생성합니다 (선택사항)
+                제품 이미지 참고용 (선택)
               </p>
               <div style={{
                 padding: '24px 12px', borderRadius: 10,
@@ -704,7 +985,7 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
               >
                 <Upload style={{ width: 22, height: 22, color: tokens.color.textSubtle, margin: '0 auto 6px' }} />
                 <p style={{ fontSize: 11, fontWeight: 600, color: tokens.color.text, margin: '0 0 3px' }}>
-                  클릭하여 이미지 업로드
+                  클릭하여 업로드
                 </p>
                 <p style={{ fontSize: 9, color: tokens.color.textSubtle, margin: 0 }}>
                   PNG, JPG (최대 10MB)
@@ -725,7 +1006,7 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
                 </h4>
               </div>
               <p style={{ fontSize: 10, color: tokens.color.textSubtle, margin: '0 0 10px' }}>
-                모델 이미지를 참고하여 프롬프트를 생성합니다 (선택사항)
+                모델 이미지 참고용 (선택)
               </p>
               <div style={{
                 padding: '24px 12px', borderRadius: 10,
@@ -738,12 +1019,94 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
               >
                 <Upload style={{ width: 22, height: 22, color: tokens.color.textSubtle, margin: '0 auto 6px' }} />
                 <p style={{ fontSize: 11, fontWeight: 600, color: tokens.color.text, margin: '0 0 3px' }}>
-                  클릭하여 이미지 업로드
+                  클릭하여 업로드
                 </p>
                 <p style={{ fontSize: 9, color: tokens.color.textSubtle, margin: 0 }}>
                   PNG, JPG (최대 10MB)
                 </p>
               </div>
+            </div>
+
+            {/* Reference Image (upload + generated) */}
+            <div style={{
+              padding: '16px', borderRadius: 12,
+              border: `1px solid ${tokens.color.border}`,
+              background: tokens.color.surface,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <Sparkles style={{ width: 14, height: 14, color: ACCENT }} />
+                <h4 style={{ fontSize: 13, fontWeight: 700, color: tokens.color.text, margin: 0 }}>
+                  참고 이미지 첨부
+                </h4>
+              </div>
+              <p style={{ fontSize: 10, color: tokens.color.textSubtle, margin: '0 0 10px' }}>
+                직접 업로드 또는 생성된 이미지 클릭 (최대 3개)
+              </p>
+              {/* 등록된 참고 이미지 목록 */}
+              {(savedImagesByStep[activeStep] || []).length > 0 && (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 6, marginBottom: 8 }}>
+                  {(savedImagesByStep[activeStep] || []).map((img, i) => (
+                    <div key={i} style={{
+                      borderRadius: 8, overflow: 'hidden',
+                      border: `2px solid ${ACCENT}`,
+                      aspectRatio: '3/4', position: 'relative',
+                    }}>
+                      <img src={img} alt={`ref-${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <button
+                        onClick={() => setSavedImagesByStep((prev) => ({
+                          ...prev,
+                          [activeStep]: (prev[activeStep] || []).filter((_, idx) => idx !== i),
+                        }))}
+                        style={{
+                          position: 'absolute', top: 4, right: 4,
+                          width: 18, height: 18, borderRadius: '50%',
+                          background: 'rgba(0,0,0,.5)', border: 'none',
+                          color: '#fff', fontSize: 10, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}
+                      >✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* 업로드 영역 (3개 미만일 때) */}
+              {(savedImagesByStep[activeStep] || []).length < 3 && (
+                <div
+                  onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/png,image/jpeg,image/webp';
+                    input.onchange = (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const url = URL.createObjectURL(file);
+                      setSavedImagesByStep((prev) => {
+                        const current = prev[activeStep] || [];
+                        if (current.length >= 3) return prev;
+                        return { ...prev, [activeStep]: [...current, url] };
+                      });
+                    };
+                    input.click();
+                  }}
+                  style={{
+                    padding: '16px 12px', borderRadius: 10,
+                    border: `2px dashed ${ACCENT_BORDER}`,
+                    textAlign: 'center', cursor: 'pointer',
+                    background: ACCENT_BG,
+                    transition: 'border-color .15s',
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = ACCENT; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = ACCENT_BORDER; }}
+                >
+                  <Upload style={{ width: 18, height: 18, color: ACCENT, margin: '0 auto 4px', opacity: 0.6 }} />
+                  <p style={{ fontSize: 10, fontWeight: 600, color: ACCENT, margin: '0 0 2px' }}>
+                    클릭하여 업로드
+                  </p>
+                  <p style={{ fontSize: 9, color: '#94a3b8', margin: 0 }}>
+                    또는 아래 생성된 이미지 클릭
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -831,17 +1194,9 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
                 생성된 이미지 ({STEPS[activeStep - 1]?.label})
               </h4>
               {generatedImages.length > 0 && (
-                <button
-                  onClick={() => generatedImages.forEach((img) => handleSaveImage(img))}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: 6,
-                    padding: '6px 14px', borderRadius: 8, fontSize: 12, fontWeight: 600,
-                    background: '#2563eb', color: '#fff', border: 'none', cursor: 'pointer',
-                  }}
-                >
-                  <Save style={{ width: 12, height: 12 }} />
-                  저장하기
-                </button>
+                <span style={{ fontSize: 11, color: '#94a3b8' }}>
+                  클릭하면 참고 이미지로 추가됩니다
+                </span>
               )}
             </div>
             {generatedImages.length === 0 ? (
@@ -903,47 +1258,53 @@ export default function AIImageEditor({ creative, campaign, onBack, onNext, onSa
         </div>
       </div>
 
-      {/* ── Bottom Action Bar ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      {/* ── Bottom Navigation Bar ── */}
+      <div style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '14px 20px', borderRadius: 10,
+        border: `1px solid ${tokens.color.border}`,
+        background: tokens.color.surface,
+      }}>
         <button
-          onClick={handleStartVideoGeneration}
-          disabled={!imageSaved}
-          title={!imageSaved ? '이미지 저장 후 영상 생성이 가능합니다' : ''}
+          onClick={onBack}
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '14px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-            border: 'none',
-            background: imageSaved ? 'linear-gradient(135deg, #2563eb, #0ea5e9)' : '#cbd5e1',
-            color: '#fff', cursor: imageSaved ? 'pointer' : 'not-allowed',
-            opacity: imageSaved ? 1 : 0.6,
-            transition: 'all .3s',
+            display: 'flex', alignItems: 'center', gap: 6,
+            padding: '10px 18px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+            border: `1px solid ${tokens.color.border}`, background: '#fff',
+            color: tokens.color.text, cursor: 'pointer',
           }}
         >
-          <Film style={{ width: 16, height: 16 }} />
-          영상으로 제작하기
+          <ArrowLeft style={{ width: 14, height: 14 }} />
+          이전 단계
         </button>
-        <button
-          onClick={handleSaveToDB}
-          disabled={isSaving}
-          style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-            padding: '14px', borderRadius: 10, fontSize: 14, fontWeight: 700,
-            border: 'none',
-            background: saveSuccess ? 'linear-gradient(135deg, #059669, #10b981)' : `linear-gradient(135deg, ${ACCENT}, #6366f1)`,
-            color: '#fff', cursor: isSaving ? 'not-allowed' : 'pointer',
-            opacity: isSaving ? 0.7 : 1,
-            transition: 'background .3s',
-          }}
-        >
-          {isSaving ? (
-            <Loader2 style={{ width: 16, height: 16, animation: 'spin 1.5s linear infinite' }} />
-          ) : saveSuccess ? (
-            <CheckCircle2 style={{ width: 16, height: 16 }} />
-          ) : (
-            <Save style={{ width: 16, height: 16 }} />
-          )}
-          {isSaving ? '저장 중...' : saveSuccess ? '저장 완료!' : '저장하기'}
-        </button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button
+            onClick={() => setVideoState('ready')}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '10px 18px', borderRadius: 8, fontSize: 13, fontWeight: 700,
+              border: 'none',
+              background: 'linear-gradient(135deg, #2563eb, #0ea5e9)',
+              color: '#fff', cursor: 'pointer',
+            }}
+          >
+            <Film style={{ width: 14, height: 14 }} />
+            영상 생성
+          </button>
+          <button
+            onClick={onNext}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '10px 18px', borderRadius: 8, fontSize: 13, fontWeight: 700,
+              border: 'none',
+              background: `linear-gradient(135deg, ${ACCENT}, #a78bfa)`,
+              color: '#fff', cursor: 'pointer',
+            }}
+          >
+            STEP 대표 이미지 선택
+            <ArrowRight style={{ width: 14, height: 14 }} />
+          </button>
+        </div>
       </div>
     </div>
   );

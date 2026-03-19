@@ -452,11 +452,13 @@ export default function ContentEngine() {
   const [seedingFormOpen, setSeedingFormOpen] = useState(false);
   const [ugcFormOpen, setUgcFormOpen] = useState(false);
   const [actionItemsPopupOpen, setActionItemsPopupOpen] = useState(false);
-  const [insightPlatformFilter, setInsightPlatformFilter] = useState('');
-  const [expandedCategory, setExpandedCategory] = useState(null);
+  const [insightCategoryFilter, setInsightCategoryFilter] = useState('');
+  const [insightSubcategoryFilter, setInsightSubcategoryFilter] = useState('');
+  const [insightTopOpen, setInsightTopOpen] = useState({});
+  const [insightDateFilter, setInsightDateFilter] = useState('');
 
   const { data, isLoading } = useContentLibrary(activeTab);
-  const { data: insightsData, isLoading: insightsLoading } = useUGCCategoryInsights(insightPlatformFilter);
+  const { data: insightsData, isLoading: insightsLoading } = useUGCCategoryInsights('', insightDateFilter);
 
   // 성과 룰 로드 (localStorage 변경 감지)
   const [perfRules, setPerfRules] = useState(loadPerformanceRules);
@@ -682,266 +684,393 @@ export default function ContentEngine() {
             </span>
           </div>
 
+          {/* UGC 탭: 카테고리별 인사이트 */}
+          {activeTab === 'ugc' && (() => {
+            const allCategories = insightsData?.data
+              ? [...new Set(insightsData.data.map((d) => d.category))]
+              : [];
+            const subcategories = insightCategoryFilter && insightsData?.data
+              ? [...new Set(insightsData.data.filter((d) => d.category === insightCategoryFilter).map((d) => d.subcategory))]
+              : [];
+            const matchedGroup = insightCategoryFilter && insightSubcategoryFilter && insightsData?.data
+              ? insightsData.data.find((d) => d.category === insightCategoryFilter && d.subcategory === insightSubcategoryFilter)
+              : null;
+            const channelContents = { youtube: [], tiktok: [], instagram: [] };
+            if (matchedGroup) {
+              matchedGroup.contents.forEach((item) => {
+                const p = (item.platform || '').toLowerCase();
+                if (channelContents[p]) channelContents[p].push(item);
+              });
+            }
+            const CHANNELS = [
+              { key: 'youtube', label: 'YouTube', color: '#ff0000', soft: '#fef2f2', icon: '▶' },
+              { key: 'tiktok', label: 'TikTok', color: '#010101', soft: '#f1f5f9', icon: '♪' },
+              { key: 'instagram', label: 'Instagram', color: '#e1306c', soft: '#fdf2f8', icon: '◎' },
+            ];
+            const filterStyle = {
+              height: 34, borderRadius: 8,
+              border: `1px solid ${tokens.color.border}`,
+              background: tokens.color.surfaceMuted,
+              padding: '0 10px', color: tokens.color.text,
+              fontSize: 13, outline: 'none',
+              transition: 'border-color .15s',
+            };
+
+            return (
+              <div style={{
+                background: tokens.color.surface,
+                border: `1px solid ${tokens.color.border}`,
+                borderRadius: 14,
+                overflow: 'hidden',
+                marginBottom: 20,
+                boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
+              }}>
+                {/* 헤더 */}
+                <div style={{
+                  padding: '16px 24px',
+                  borderBottom: `1px solid ${tokens.color.border}`,
+                  background: tokens.color.surfaceMuted,
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                }}>
+                  <div className="flex items-center gap-2">
+                    <div style={{
+                      width: 28, height: 28, borderRadius: 8,
+                      background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                      <TrendingUp style={{ width: 14, height: 14, color: '#fff' }} />
+                    </div>
+                    <div>
+                      <h2 style={{ fontSize: 14, fontWeight: 700, color: tokens.color.text, margin: 0 }}>
+                        카테고리별 인사이트
+                      </h2>
+                      <p style={{ fontSize: 11, color: tokens.color.textSubtle, margin: 0 }}>
+                        AI 채널 분석 · mst_plan_issue_top_content
+                      </p>
+                    </div>
+                  </div>
+                  {matchedGroup && (
+                    <span style={{
+                      fontSize: 11, fontWeight: 600, color: '#6366f1',
+                      background: '#eef2ff', borderRadius: 6, padding: '3px 10px',
+                    }}>
+                      {matchedGroup.contents.length}건
+                    </span>
+                  )}
+                </div>
+
+                {/* 필터 바 */}
+                <div style={{
+                  padding: '12px 24px',
+                  borderBottom: `1px solid ${tokens.color.border}`,
+                  display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap',
+                }}>
+                  <select
+                    value={insightDateFilter}
+                    onChange={(e) => {
+                      setInsightDateFilter(e.target.value);
+                      setInsightCategoryFilter('');
+                      setInsightSubcategoryFilter('');
+                      setInsightTopOpen({});
+                    }}
+                    style={{ ...filterStyle, width: 145 }}
+                  >
+                    <option value="">전체 수집일</option>
+                    {(insightsData?.availableDates || []).map((dt) => (
+                      <option key={dt} value={dt}>{dt}</option>
+                    ))}
+                  </select>
+
+                  <span style={{ width: 1, height: 20, background: tokens.color.border }} />
+
+                  <select
+                    value={insightCategoryFilter}
+                    onChange={(e) => {
+                      setInsightCategoryFilter(e.target.value);
+                      setInsightSubcategoryFilter('');
+                    }}
+                    style={{ ...filterStyle, width: 160 }}
+                  >
+                    <option value="">카테고리 선택</option>
+                    {allCategories.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={insightSubcategoryFilter}
+                    onChange={(e) => setInsightSubcategoryFilter(e.target.value)}
+                    disabled={!insightCategoryFilter}
+                    style={{
+                      ...filterStyle, width: 180,
+                      opacity: insightCategoryFilter ? 1 : 0.5,
+                      cursor: insightCategoryFilter ? 'pointer' : 'not-allowed',
+                    }}
+                  >
+                    <option value="">서브카테고리 선택</option>
+                    {subcategories.map((sc) => (
+                      <option key={sc} value={sc}>{sc}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* 인사이트 본문 */}
+                <div style={{ padding: '20px 24px' }}>
+                  {insightsLoading ? (
+                    <div className="flex items-center justify-center py-12">
+                      <div className="animate-spin rounded-full h-7 w-7 border-b-2" style={{ borderColor: '#6366f1' }} />
+                    </div>
+                  ) : !insightCategoryFilter || !insightSubcategoryFilter ? (
+                    <div style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                      padding: '40px 0', color: tokens.color.textSubtle,
+                    }}>
+                      <div style={{
+                        width: 48, height: 48, borderRadius: 12,
+                        background: tokens.color.surfaceMuted,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        marginBottom: 12,
+                      }}>
+                        <TrendingUp style={{ width: 22, height: 22, opacity: 0.3 }} />
+                      </div>
+                      <p style={{ fontSize: 13, fontWeight: 600, margin: 0, color: tokens.color.text }}>카테고리와 서브카테고리를 선택하세요</p>
+                      <p style={{ fontSize: 12, margin: '6px 0 0', color: tokens.color.textSubtle }}>선택 후 채널별 AI 인사이트가 표시됩니다</p>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 20 }}>
+                      {CHANNELS.map((ch) => {
+                        const items = channelContents[ch.key];
+                        const firstWithSummary = items.find((it) => {
+                          const s = typeof it.ai_channel_summary === 'string'
+                            ? it.ai_channel_summary
+                            : it.ai_channel_summary?.summary || it.ai_channel_summary?.insight || '';
+                          return s.length > 0;
+                        });
+                        const mainInsight = firstWithSummary
+                          ? (typeof firstWithSummary.ai_channel_summary === 'string'
+                            ? firstWithSummary.ai_channel_summary
+                            : firstWithSummary.ai_channel_summary?.summary || firstWithSummary.ai_channel_summary?.insight || '')
+                          : '';
+                        const isTopOpen = insightTopOpen[ch.key] || false;
+
+                        return (
+                          <div key={ch.key} style={{
+                            borderRadius: 12, overflow: 'hidden',
+                            border: `1px solid ${tokens.color.border}`,
+                            background: tokens.color.surface,
+                          }}>
+                            {/* 채널 헤더 */}
+                            <div style={{
+                              padding: '10px 16px',
+                              background: ch.soft,
+                              borderBottom: `2px solid ${ch.color}`,
+                              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            }}>
+                              <div className="flex items-center gap-2">
+                                <span style={{ fontSize: 12 }}>{ch.icon}</span>
+                                <span style={{ fontSize: 13, fontWeight: 700, color: ch.color }}>{ch.label}</span>
+                              </div>
+                              <span style={{
+                                fontSize: 10, fontWeight: 700, color: ch.color,
+                                background: 'rgba(255,255,255,0.7)', borderRadius: 6, padding: '2px 8px',
+                              }}>
+                                {items.length}건
+                              </span>
+                            </div>
+
+                            <div style={{ padding: '14px 16px' }}>
+                              {items.length === 0 ? (
+                                <p style={{ fontSize: 12, color: '#b0b8c9', textAlign: 'center', padding: '24px 0', margin: 0 }}>
+                                  해당 채널 데이터 없음
+                                </p>
+                              ) : (
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                  {/* 채널 인사이트 */}
+                                  {mainInsight && (
+                                    <div style={{
+                                      background: ch.soft,
+                                      borderRadius: 10,
+                                      padding: '12px 14px',
+                                      borderLeft: `3px solid ${ch.color}`,
+                                    }}>
+                                      <p style={{ fontSize: 12.5, color: tokens.color.text, lineHeight: 1.7, margin: 0 }}>
+                                        {mainInsight}
+                                      </p>
+                                    </div>
+                                  )}
+
+                                  {/* TOP 영상 토글 */}
+                                  <button
+                                    onClick={() => setInsightTopOpen((prev) => ({ ...prev, [ch.key]: !prev[ch.key] }))}
+                                    style={{
+                                      display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+                                      padding: '7px 0', borderRadius: 8,
+                                      border: `1px solid ${tokens.color.border}`,
+                                      background: isTopOpen ? tokens.color.surfaceMuted : tokens.color.surface,
+                                      cursor: 'pointer', fontSize: 11, fontWeight: 600,
+                                      color: isTopOpen ? tokens.color.text : tokens.color.textSubtle,
+                                      width: '100%',
+                                      transition: 'all .15s',
+                                    }}
+                                  >
+                                    TOP {items.length} 영상 {isTopOpen ? '접기' : '보기'}
+                                    {isTopOpen
+                                      ? <ChevronUp style={{ width: 14, height: 14 }} />
+                                      : <ChevronDown style={{ width: 14, height: 14 }} />
+                                    }
+                                  </button>
+
+                                  {/* TOP 영상 목록 */}
+                                  {isTopOpen && (
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                      {items.map((item) => {
+                                        const postSummary = typeof item.ai_post_summary === 'string'
+                                          ? item.ai_post_summary
+                                          : item.ai_post_summary?.summary || item.ai_post_summary?.insight || '';
+                                        return (
+                                          <div
+                                            key={item.id || item.post_id}
+                                            style={{
+                                              borderRadius: 8, padding: '10px 12px',
+                                              background: tokens.color.surfaceMuted,
+                                              transition: 'background .15s',
+                                            }}
+                                            onMouseEnter={(e) => { e.currentTarget.style.background = '#f1f5f9'; }}
+                                            onMouseLeave={(e) => { e.currentTarget.style.background = tokens.color.surfaceMuted; }}
+                                          >
+                                            <div className="flex items-center gap-2" style={{ marginBottom: 5 }}>
+                                              {item.rank_no && (
+                                                <span style={{
+                                                  fontSize: 9, fontWeight: 800, color: '#fff', letterSpacing: 0.3,
+                                                  background: item.rank_no === 1 ? '#f59e0b' : item.rank_no === 2 ? '#94a3b8' : '#d4a574',
+                                                  borderRadius: 4, padding: '2px 7px',
+                                                }}>
+                                                  #{item.rank_no}
+                                                </span>
+                                              )}
+                                              {item.view_count > 0 && (
+                                                <span className="flex items-center gap-0.5" style={{ fontSize: 10, color: tokens.color.textSubtle, marginLeft: 'auto' }}>
+                                                  <Eye className="h-3 w-3" />{formatCompactNumber(Number(item.view_count))}
+                                                </span>
+                                              )}
+                                            </div>
+                                            {item.title && (
+                                              <p style={{
+                                                fontSize: 12, fontWeight: 600, color: tokens.color.text,
+                                                marginBottom: 3, lineHeight: 1.4,
+                                                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                                              }}>
+                                                {item.title}
+                                              </p>
+                                            )}
+                                            {postSummary && (
+                                              <p style={{
+                                                fontSize: 11, color: tokens.color.textSubtle, lineHeight: 1.5,
+                                                marginBottom: 4,
+                                                display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                                              }}>
+                                                {postSummary}
+                                              </p>
+                                            )}
+                                            <div className="flex items-center justify-between">
+                                              {item.author_nm && (
+                                                <span style={{ fontSize: 10, color: tokens.color.textSubtle }}>@{item.author_nm}</span>
+                                              )}
+                                              {item.post_url && (
+                                                <button
+                                                  onClick={() => window.open(item.post_url, '_blank', 'noopener,noreferrer')}
+                                                  className="flex items-center gap-1"
+                                                  style={{
+                                                    fontSize: 10, color: tokens.color.primary, fontWeight: 600,
+                                                    background: 'transparent', border: 'none',
+                                                    cursor: 'pointer', padding: 0,
+                                                  }}
+                                                >
+                                                  <ExternalLink className="h-3 w-3" />원본
+                                                </button>
+                                              )}
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Content Grid + Sidebar */}
-          <div className="fnco-content-main-grid">
+          <div className="fnco-content-main-grid" style={activeTab === 'ugc' ? { gridTemplateColumns: '1fr' } : undefined}>
             <div>
               {isLoading ? (
-                <div className="flex items-center justify-center py-20" style={{ color: tokens.color.textSubtle }}>
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: tokens.color.primary }} />
-                </div>
-              ) : filtered.length === 0 ? (
-                <div className="text-center py-20" style={{ color: tokens.color.textSubtle, fontSize: 14 }}>
-                  필터 조건에 맞는 콘텐츠가 없습니다.
-                </div>
-              ) : (
-                <div className="fnco-content-card-grid">
-                  {filtered.map((item) => <ContentCard key={item.id} item={item} />)}
-                </div>
-              )}
+                  <div className="flex items-center justify-center py-20" style={{ color: tokens.color.textSubtle }}>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: tokens.color.primary }} />
+                  </div>
+                ) : filtered.length === 0 ? (
+                  <div className="text-center py-20" style={{ color: tokens.color.textSubtle, fontSize: 14 }}>
+                    필터 조건에 맞는 콘텐츠가 없습니다.
+                  </div>
+                ) : (
+                  <div className="fnco-content-card-grid">
+                    {filtered.map((item) => <ContentCard key={item.id} item={item} />)}
+                  </div>
+                )}
             </div>
 
             <aside>
-              <div
-                style={{
-                  background: tokens.color.surface,
-                  border: `1px solid ${tokens.color.border}`,
-                  borderRadius: 'var(--fnco-radius-md)',
-                  padding: '20px',
-                  position: 'sticky',
-                  top: 20,
-                }}
-              >
-                <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
-                  <h2 style={{ fontSize: 15, fontWeight: 700, color: tokens.color.text }}>
-                    Engine Action Items
-                  </h2>
-                  <button
-                    onClick={() => setActionItemsPopupOpen(true)}
-                    title="상세 설명 보기"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 4,
-                      padding: '4px 10px',
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: tokens.color.primary,
-                      background: 'transparent',
-                      border: `1px solid ${tokens.color.border}`,
-                      borderRadius: 6,
-                      cursor: 'pointer',
-                      transition: 'background 0.15s',
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.background = tokens.color.surfaceMuted; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                  >
-                    <Info className="h-3.5 w-3.5" />
-                    상세 설명
-                  </button>
-                </div>
-                <div className="space-y-2">
-                  <ActionItem icon={Sparkles} color="var(--fnco-primary)" text="BF-A 콘텐츠를 성과 콘텐츠 탭으로 자동 승격" />
-                  <ActionItem icon={Globe2} color="var(--fnco-geo)" text="GEO Potential 콘텐츠 현지화 보완 큐 생성" />
-                  <ActionItem icon={ArrowUpRight} color="var(--fnco-warning)" text="BF-A + GEO Ready 콘텐츠를 글로벌 확장 후보로 표시" />
-                </div>
-              </div>
-
-              {/* UGC 탭: 뷰티 카테고리별 인사이트 */}
-              {activeTab === 'ugc' && (
+              {activeTab !== 'ugc' && (
                 <div
                   style={{
                     background: tokens.color.surface,
                     border: `1px solid ${tokens.color.border}`,
                     borderRadius: 'var(--fnco-radius-md)',
                     padding: '20px',
-                    marginTop: 16,
+                    position: 'sticky',
+                    top: 20,
                   }}
                 >
-                  <div className="flex items-center gap-2" style={{ marginBottom: 12 }}>
-                    <TrendingUp className="h-4 w-4" style={{ color: tokens.color.primary }} />
+                  <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
                     <h2 style={{ fontSize: 15, fontWeight: 700, color: tokens.color.text }}>
-                      카테고리별 인사이트
+                      Engine Action Items
                     </h2>
-                  </div>
-
-                  {/* 플랫폼 필터 */}
-                  <div style={{ marginBottom: 12 }}>
-                    <select
-                      value={insightPlatformFilter}
-                      onChange={(e) => setInsightPlatformFilter(e.target.value)}
-                      className="text-sm"
+                    <button
+                      onClick={() => setActionItemsPopupOpen(true)}
+                      title="상세 설명 보기"
                       style={{
-                        width: '100%',
-                        height: 32,
-                        borderRadius: 6,
-                        border: `1px solid ${tokens.color.border}`,
-                        background: tokens.color.surfaceMuted,
-                        padding: '0 8px',
-                        color: tokens.color.text,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 4,
+                        padding: '4px 10px',
                         fontSize: 12,
-                        outline: 'none',
+                        fontWeight: 600,
+                        color: tokens.color.primary,
+                        background: 'transparent',
+                        border: `1px solid ${tokens.color.border}`,
+                        borderRadius: 6,
+                        cursor: 'pointer',
+                        transition: 'background 0.15s',
                       }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = tokens.color.surfaceMuted; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
-                      <option value="">전체 플랫폼</option>
-                      <option value="youtube">YouTube</option>
-                      <option value="tiktok">TikTok</option>
-                      <option value="instagram">Instagram</option>
-                    </select>
+                      <Info className="h-3.5 w-3.5" />
+                      상세 설명
+                    </button>
                   </div>
-
-                  {insightsLoading ? (
-                    <div className="flex items-center justify-center py-6">
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: tokens.color.primary }} />
-                    </div>
-                  ) : !insightsData?.data?.length ? (
-                    <p style={{ fontSize: 12, color: tokens.color.textSubtle, textAlign: 'center', padding: '16px 0' }}>
-                      인사이트 데이터가 없습니다.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {insightsData.data.map((cat) => {
-                        const isExpanded = expandedCategory === (cat.subcategory || cat.category);
-                        const catKey = cat.subcategory || cat.category;
-                        return (
-                          <div
-                            key={catKey}
-                            style={{
-                              border: `1px solid ${tokens.color.border}`,
-                              borderRadius: 8,
-                              overflow: 'hidden',
-                            }}
-                          >
-                            {/* 카테고리 헤더 */}
-                            <button
-                              onClick={() => setExpandedCategory(isExpanded ? null : catKey)}
-                              className="w-full flex items-center justify-between"
-                              style={{
-                                padding: '10px 12px',
-                                background: isExpanded ? tokens.color.surfaceMuted : 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                transition: 'background 0.15s',
-                              }}
-                              onMouseEnter={(e) => { if (!isExpanded) e.currentTarget.style.background = tokens.color.surfaceMuted; }}
-                              onMouseLeave={(e) => { if (!isExpanded) e.currentTarget.style.background = 'transparent'; }}
-                            >
-                              <div className="flex items-center gap-2">
-                                <span
-                                  style={{
-                                    fontSize: 11,
-                                    fontWeight: 700,
-                                    color: '#fff',
-                                    background: tokens.color.primary,
-                                    borderRadius: 4,
-                                    padding: '2px 6px',
-                                  }}
-                                >
-                                  {cat.category || 'Beauty'}
-                                </span>
-                                <span style={{ fontSize: 13, fontWeight: 600, color: tokens.color.text }}>
-                                  {cat.subcategory || cat.category}
-                                </span>
-                                <span style={{ fontSize: 11, color: tokens.color.textSubtle }}>
-                                  ({cat.contents.length})
-                                </span>
-                              </div>
-                              {isExpanded
-                                ? <ChevronUp className="h-4 w-4" style={{ color: tokens.color.textSubtle }} />
-                                : <ChevronDown className="h-4 w-4" style={{ color: tokens.color.textSubtle }} />
-                              }
-                            </button>
-
-                            {/* 확장된 인사이트 내용 */}
-                            {isExpanded && (
-                              <div style={{ padding: '0 12px 12px' }}>
-                                {cat.contents.map((item, idx) => {
-                                  const summary = typeof item.ai_post_summary === 'string'
-                                    ? item.ai_post_summary
-                                    : item.ai_post_summary?.summary || item.ai_post_summary?.insight || JSON.stringify(item.ai_post_summary);
-                                  const channelSummary = typeof item.ai_channel_summary === 'string'
-                                    ? item.ai_channel_summary
-                                    : item.ai_channel_summary?.summary || item.ai_channel_summary?.insight || '';
-                                  const platformMeta = getPlatformMeta(item.platform);
-
-                                  return (
-                                    <div
-                                      key={item.id || idx}
-                                      style={{
-                                        padding: '10px 0',
-                                        borderTop: idx > 0 ? `1px solid ${tokens.color.border}` : 'none',
-                                      }}
-                                    >
-                                      <div className="flex items-center gap-2" style={{ marginBottom: 6 }}>
-                                        <span
-                                          style={{
-                                            fontSize: 10,
-                                            fontWeight: 600,
-                                            color: platformMeta.color,
-                                            background: platformMeta.soft,
-                                            borderRadius: 4,
-                                            padding: '1px 5px',
-                                          }}
-                                        >
-                                          {platformMeta.label}
-                                        </span>
-                                        {item.rank_no && (
-                                          <span style={{ fontSize: 10, fontWeight: 700, color: tokens.color.primary }}>
-                                            TOP {item.rank_no}
-                                          </span>
-                                        )}
-                                        {item.view_count > 0 && (
-                                          <span className="flex items-center gap-0.5" style={{ fontSize: 10, color: tokens.color.textSubtle }}>
-                                            <Eye className="h-3 w-3" />{formatCompactNumber(Number(item.view_count))}
-                                          </span>
-                                        )}
-                                      </div>
-
-                                      {item.title && (
-                                        <p style={{ fontSize: 12, fontWeight: 600, color: tokens.color.text, marginBottom: 4, lineHeight: 1.4 }}>
-                                          {item.title}
-                                        </p>
-                                      )}
-
-                                      {summary && (
-                                        <p style={{ fontSize: 11, color: tokens.color.textSubtle, lineHeight: 1.5, marginBottom: 4 }}>
-                                          {typeof summary === 'string' && summary.length > 120 ? summary.slice(0, 120) + '...' : summary}
-                                        </p>
-                                      )}
-
-                                      {channelSummary && (
-                                        <p style={{ fontSize: 11, color: tokens.color.textSubtle, lineHeight: 1.5, marginBottom: 4, fontStyle: 'italic' }}>
-                                          {typeof channelSummary === 'string' && channelSummary.length > 100 ? channelSummary.slice(0, 100) + '...' : channelSummary}
-                                        </p>
-                                      )}
-
-                                      {item.post_url && (
-                                        <button
-                                          onClick={() => window.open(item.post_url, '_blank', 'noopener,noreferrer')}
-                                          className="flex items-center gap-1"
-                                          style={{
-                                            fontSize: 11,
-                                            color: tokens.color.primary,
-                                            background: 'transparent',
-                                            border: 'none',
-                                            cursor: 'pointer',
-                                            padding: 0,
-                                            marginTop: 2,
-                                          }}
-                                        >
-                                          <ExternalLink className="h-3 w-3" />
-                                          원본 보기
-                                        </button>
-                                      )}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <div className="space-y-2">
+                    <ActionItem icon={Sparkles} color="var(--fnco-primary)" text="BF-A 콘텐츠를 성과 콘텐츠 탭으로 자동 승격" />
+                    <ActionItem icon={Globe2} color="var(--fnco-geo)" text="GEO Potential 콘텐츠 현지화 보완 큐 생성" />
+                    <ActionItem icon={ArrowUpRight} color="var(--fnco-warning)" text="BF-A + GEO Ready 콘텐츠를 글로벌 확장 후보로 표시" />
+                  </div>
                 </div>
               )}
             </aside>

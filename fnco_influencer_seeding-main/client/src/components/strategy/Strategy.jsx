@@ -201,7 +201,7 @@ export default function Strategy({ initialApprovalOpen = false }) {
             <StrategySection
               icon={<Megaphone style={{ width: 16, height: 16, color: '#6366f1' }} />}
               title="채널 전략"
-              tooltip={"3단계 다중 요인 스코어링으로 채널을 배분합니다.\n\n① 페르소나 선호 채널 (50%): 페르소나의 미디어 소비 패턴에서 1·2순위 채널을 추출합니다.\n② 퍼널 × 채널 적합도 (30%): TOFU→TikTok(바이럴), MOFU→Instagram(참여), BOFU→YouTube(신뢰).\n③ 포맷 호환성 (20%): 콘텐츠 포맷(Reels, Shorts, Video 등)과 플랫폼 매칭.\n\n최종 점수가 가장 높은 채널에 컨셉이 자동 배분됩니다."}
+              tooltip={"콘텐츠는 어떻게 배분되나요?\n\n고객의 미디어 소비 패턴과 현재 마케팅 목표를 분석해 채널을 결정합니다.\n\n1. 고객이 좋아하는 채널\n페르소나가 가장 많이 활동하는 1, 2순위 채널 중심\n\n2. 단계별 최적 채널\n'제품 인지(TOFU)', '고려(MOFU)', '구매 전환 유도(BOFU)' 등 각 목적에 가장 효과적인 채널 가중치 부여"}
               isEditing={editingSection === 'channels'}
               onEdit={() => startEditing('channels')}
               onSave={() => saveSection('channels')}
@@ -280,12 +280,13 @@ function InfoTooltip({ text }) {
       {show && (
         <span style={{
           position: 'absolute', left: '50%', bottom: 'calc(100% + 6px)', transform: 'translateX(-50%)',
-          width: 320, padding: '10px 14px', borderRadius: 10,
+          width: 360, padding: '10px 14px', borderRadius: 10,
           background: '#1e293b', color: '#fff',
           fontSize: 11, lineHeight: 1.6, fontWeight: 400,
+          fontFamily: "'Pretendard', monospace",
           pointerEvents: 'none',
           zIndex: 9999, boxShadow: '0 4px 16px rgba(0,0,0,.3)',
-          whiteSpace: 'pre-line',
+          whiteSpace: 'pre-wrap',
         }}>
           {text}
         </span>
@@ -693,7 +694,7 @@ function ChannelsDisplay({ channels, pdaData }) {
       }}>
         <span style={{ fontSize: 10 }}>🧠</span>
         <span style={{ fontSize: 10, fontWeight: 600, color: '#4338ca' }}>
-          3단계 스코어링: 페르소나 선호(50%) + 퍼널 적합도(30%) + 포맷 호환(20%)
+          2단계 스코어링: 페르소나 선호(60%) + 퍼널 적합도(40%)
         </span>
       </div>
 
@@ -787,8 +788,6 @@ function ChannelsDisplay({ channels, pdaData }) {
         );
       })}
 
-      {/* 퍼널 × 채널 적합도 매트릭스 (토글) */}
-      <FunnelMatrixToggle funnelMatrix={funnelMatrix} />
     </div>
   );
 }

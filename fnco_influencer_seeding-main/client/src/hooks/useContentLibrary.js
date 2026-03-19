@@ -86,10 +86,14 @@ export function useCreateSeedingContent() {
  * UGC 뷰티 카테고리별 인사이트 조회
  * GET /api/contents/ugc/insights
  */
-export function useUGCCategoryInsights(platform) {
+export function useUGCCategoryInsights(platform, createdDt) {
+  const params = new URLSearchParams();
+  if (platform) params.set('platform', platform);
+  if (createdDt) params.set('created_dt', createdDt);
+  const qs = params.toString();
   return useQuery({
-    queryKey: ['ugc-category-insights', platform],
-    queryFn: () => v1Fetch(`/ugc/insights${platform ? `?platform=${platform}` : ''}`),
+    queryKey: ['ugc-category-insights', platform, createdDt],
+    queryFn: () => v1Fetch(`/ugc/insights${qs ? `?${qs}` : ''}`),
   });
 }
 

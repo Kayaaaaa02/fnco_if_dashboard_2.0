@@ -815,13 +815,18 @@ export const logPerformanceContentDetection = async (req, res) => {
  */
 export const getUGCCategoryInsights = async (req, res) => {
     try {
-        const { platform } = req.query;
+        const { platform, created_dt } = req.query;
         const params = [];
         let whereClause = 'WHERE 1=1';
 
         if (platform) {
             params.push(platform.toLowerCase());
             whereClause += ` AND LOWER(platform) = $${params.length}`;
+        }
+
+        if (created_dt) {
+            params.push(created_dt);
+            whereClause += ` AND DATE(created_dt) = $${params.length}`;
         }
 
         const query = `
@@ -890,11 +895,21 @@ export const getUGCCategoryInsights = async (req, res) => {
 
         const categories = Object.values(categoryMap);
 
+        // 수집일자 목록 (전체 테이블에서 distinct, 내림차순)
+        const dateResult = await pool.query(`
+            SELECT DISTINCT DATE(created_dt)::text AS dt
+            FROM fnco_influencer.mst_plan_issue_top_content
+            WHERE created_dt IS NOT NULL
+            ORDER BY dt DESC
+        `);
+        const availableDates = dateResult.rows.map((r) => r.dt).filter(Boolean);
+
         res.json({
             success: true,
             data: categories,
             totalCategories: categories.length,
             totalContents: result.rows.length,
+            availableDates,
         });
     } catch (error) {
         console.error('UGC 카테고리 인사이트 조회 실패:', error);

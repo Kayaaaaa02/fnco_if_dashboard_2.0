@@ -491,8 +491,8 @@ function InfluencerCard({ influencer, onToggleSelection, onDeepAnalysis, isAnaly
     <div
       style={{
         borderRadius: 14,
-        border: `1px solid ${isChecked ? tokens.color.primary : isSaved ? '#bbf7d0' : tokens.color.border}`,
-        background: isSaved ? '#f0fdf4' : tokens.color.surface,
+        border: `1px solid ${isChecked ? '#bbf7d0' : tokens.color.border}`,
+        background: isChecked ? '#f0fdf4' : tokens.color.surface,
         boxShadow: tokens.shadow.card,
         padding: 16,
         transition: 'box-shadow .15s, border-color .15s, background .15s',
@@ -703,7 +703,7 @@ function InfluencerTableView({ influencers, onToggleSelection, onDeepAnalysis, a
         </TableHeader>
         <TableBody>
           {influencers.map((inf) => (
-            <TableRow key={inf.id} style={{ borderColor: tokens.color.border, background: inf.isSaved ? '#f0fdf4' : undefined }}>
+            <TableRow key={inf.id} style={{ borderColor: tokens.color.border, background: checkedIds.has(inf.id) ? '#f0fdf4' : undefined }}>
               <TableCell style={{ width: 40, textAlign: 'center' }}>
                 <button
                   type="button"

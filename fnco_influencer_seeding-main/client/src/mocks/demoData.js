@@ -110,6 +110,49 @@ export const mockUGCContent = [
   { ugc_id: 'UGC_005', platform: 'tiktok', author: '@glow_hana', author_name: '하나', content_url: 'https://tiktok.com/@glow_hana/mock5', thumbnail: 'https://picsum.photos/seed/ugc5/300/300', engagement: { likes: 3450, comments: 156, shares: 234 }, permission_status: 'approved', amplify_status: 'active', discovered_at: '2025-03-09T22:00:00Z' },
 ];
 
+// ─ UGC Category Insights (mst_plan_issue_top_content 테이블 기반) ─
+// category → subcategory 계층, 각 서브카테고리에 youtube/tiktok/instagram 3채널 콘텐츠
+export const mockUGCCategoryInsights = {
+  success: true,
+  data: [
+    // ── 립 메이크업 ──
+    { category: '립 메이크업', subcategory: '틴트/립스틱 리뷰', contents: [
+      { id: 1, rank_no: 1, platform: 'youtube', title: '2026 봄 신상 틴트 TOP 5 비교! 쉬어 벨벳 베일 틴트가 1위인 이유', author_nm: '뷰티 크리에이터 소희', view_count: 892000, ai_post_summary: '보습력과 발색력을 동시에 잡은 쉬어 벨벳 베일 틴트를 5개 경쟁 제품과 비교 리뷰. 6시간 지속력 테스트에서 압도적 1위.', ai_channel_summary: '뷰티 비교 리뷰 전문 채널. 객관적 테스트로 높은 신뢰도. 25-34 여성 시청자 중심.', post_url: 'https://www.youtube.com/watch?v=example_lip1', created_dt: '2026-02-28T14:00:00Z' },
+      { id: 2, rank_no: 1, platform: 'tiktok', title: '건조한 입술 구원 틴트 찾았다! #벨벳틴트 #촉촉립', author_nm: '@lip_master', view_count: 1340000, ai_post_summary: '건조한 입술 고민 해결 보습 틴트로 쉬어 벨벳 베일 틴트를 소개. 바르는 순간부터 촉촉한 텍스처와 자연스러운 발색 시연.', ai_channel_summary: '립 메이크업 전문 TikTok 크리에이터. Z세대 팔로워 비중 68%. 완시청률 48%.', post_url: 'https://www.tiktok.com/@lip_master/video/example_lip2', created_dt: '2026-03-02T10:30:00Z' },
+      { id: 3, rank_no: 1, platform: 'instagram', title: '봄 맞이 벨벳 틴트 전색상 스워치', author_nm: '@color_swatch_kr', view_count: 456000, ai_post_summary: '쉬어 벨벳 베일 틴트 전 8색상 립스워치. 코랄/로즈 계열 높은 반응. 캐러셀 형식으로 색상별 비교 제공.', ai_channel_summary: 'Instagram 컬러 스워치 전문 계정. 저장율 12%로 카테고리 평균 대비 4배.', post_url: 'https://www.instagram.com/p/example_lip3', created_dt: '2026-03-05T09:15:00Z' },
+    ]},
+    { category: '립 메이크업', subcategory: '컬러 트렌드', contents: [
+      { id: 4, rank_no: 1, platform: 'youtube', title: '퍼스널 컬러별 벨벳 틴트 컬러 추천! 나에게 맞는 색은?', author_nm: '컬러 진단사 유진', view_count: 412000, ai_post_summary: '퍼스널 컬러 진단사가 8색상을 봄웜/여름쿨/가을웜/겨울쿨 타입별로 분류. 각 타입별 Best/Worst 컬러 시연.', ai_channel_summary: '전문 퍼스널 컬러 진단사 YouTube. 25-34 여성에게 높은 신뢰.', post_url: 'https://www.youtube.com/watch?v=example_color2', created_dt: '2026-03-09T14:20:00Z' },
+      { id: 5, rank_no: 1, platform: 'tiktok', title: '2026 봄 립 트렌드 컬러 TOP 3! 벨벳 코랄이 대세', author_nm: '@color_trend', view_count: 1870000, ai_post_summary: '2026 S/S 시즌 립 트렌드 분석. 코랄·로즈·누드가 봄 트렌드 Top 3. 퍼스널 컬러별 추천도 소개.', ai_channel_summary: 'TikTok 컬러 트렌드 분석 채널. 시즌별 트렌드 콘텐츠로 빠른 바이럴. 210만 팔로워.', post_url: 'https://www.tiktok.com/@color_trend/video/example_color1', created_dt: '2026-03-07T09:00:00Z' },
+      { id: 6, rank_no: 1, platform: 'instagram', title: '웜톤 vs 쿨톤 벨벳 틴트 비교 캐러셀', author_nm: '@tone_match_kr', view_count: 324000, ai_post_summary: '웜톤/쿨톤별 쉬어 벨벳 베일 틴트 추천 컬러를 캐러셀 10장으로 정리. 각 톤별 Best 2색상과 레이어링 팁.', ai_channel_summary: 'Instagram 퍼스널 컬러 전문. 캐러셀 저장율 15%.', post_url: 'https://www.instagram.com/p/example_color3', created_dt: '2026-03-10T11:00:00Z' },
+    ]},
+    // ── 스킨케어 ──
+    { category: '스킨케어', subcategory: '보습/립케어', contents: [
+      { id: 7, rank_no: 1, platform: 'youtube', title: '입술 건조 해결! 립 보습 루틴 A to Z (feat. 쉬어 벨벳 베일 틴트)', author_nm: '피부과 전문의 Dr.Kim', view_count: 623000, ai_post_summary: '피부과 전문의 추천 입술 보습 루틴. 히알루론산+쉬어버터 성분 분석과 보습 효과 검증.', ai_channel_summary: '피부과 전문의 운영 뷰티 채널. 30-40대 여성에게 높은 신뢰도.', post_url: 'https://www.youtube.com/watch?v=example_skin1', created_dt: '2026-02-25T11:00:00Z' },
+      { id: 8, rank_no: 1, platform: 'tiktok', title: '입술 각질 제거 후 틴트 바르면 이렇게 달라요!', author_nm: '@skincare_daily', view_count: 987000, ai_post_summary: '입술 각질 케어 후 틴트 적용 Before/After 비교. 보습 지속력을 시간별로 체크.', ai_channel_summary: '데일리 스킨케어 루틴 전문 TikTok. 비포/애프터 콘텐츠로 높은 저장율.', post_url: 'https://www.tiktok.com/@skincare_daily/video/example_skin2', created_dt: '2026-03-01T16:20:00Z' },
+      { id: 9, rank_no: 1, platform: 'instagram', title: '건조 입술 탈출 3단계 루틴 (스크럽→세럼→벨벳 틴트)', author_nm: '@lip_care_lab', view_count: 267000, ai_post_summary: '립 스크럽 → 립 세럼 → 쉬어 벨벳 베일 틴트 3단계 보습 루틴. 단계별 사진으로 변화 과정 시각화.', ai_channel_summary: 'Instagram 립케어 전문 계정. 스텝별 루틴 콘텐츠로 20대 여성에게 인기.', post_url: 'https://www.instagram.com/p/example_skin3', created_dt: '2026-03-03T13:00:00Z' },
+    ]},
+    { category: '스킨케어', subcategory: '성분 분석', contents: [
+      { id: 10, rank_no: 1, platform: 'youtube', title: '쉬어 벨벳 베일 틴트 전성분 분석! 정말 보습될까?', author_nm: '코덕연구소', view_count: 534000, ai_post_summary: '전성분표 분석. 히알루론산·쉬어버터·비타민E 핵심 보습 성분 함량과 효과를 과학적으로 검증. 경쟁 대비 보습 성분 2.3배.', ai_channel_summary: '뷰티 성분 분석 전문 YouTube. 시청 시간 평균 8분으로 카테고리 2배.', post_url: 'https://www.youtube.com/watch?v=example_ingr1', created_dt: '2026-02-20T15:30:00Z' },
+      { id: 11, rank_no: 1, platform: 'tiktok', title: '성분 오타쿠가 분석한 보습 틴트 성분 TOP 3', author_nm: '@ingredient_nerd', view_count: 756000, ai_post_summary: '쉬어 벨벳 베일 틴트 핵심 성분 3가지(히알루론산, 쉬어버터, 세라마이드)를 60초 안에 해설. 성분 시각화 자막 활용.', ai_channel_summary: 'TikTok 성분 분석 전문. 60초 숏폼 포맷으로 Z세대 성분 관심층 타겟.', post_url: 'https://www.tiktok.com/@ingredient_nerd/video/example_ingr2', created_dt: '2026-03-04T09:00:00Z' },
+      { id: 12, rank_no: 1, platform: 'instagram', title: '비건 인증 틴트! 성분 안전한 립 추천 리스트', author_nm: '@clean_beauty_kr', view_count: 289000, ai_post_summary: '비건·클린 뷰티 관점에서 평가. 유해 성분 무첨가와 동물실험 미실시 인증 확인. 민감성 피부 사용자 후기 공유.', ai_channel_summary: 'Instagram 클린 뷰티 전문. 비건/클린 관심층 타겟. 팔로워 신뢰도 높음.', post_url: 'https://www.instagram.com/p/example_ingr3', created_dt: '2026-03-06T11:45:00Z' },
+    ]},
+    // ── 메이크업 룩 ──
+    { category: '메이크업 룩', subcategory: 'GRWM/데일리', contents: [
+      { id: 13, rank_no: 1, platform: 'youtube', title: '학교 가기 전 자연스러운 메이크업 — 틴트 추천', author_nm: '대학생 뷰티 하은', view_count: 245000, ai_post_summary: '대학생 일상 메이크업에서 자연스러운 발색 활용. 데일리 립 컬러로 10-20대 초반에게 높은 공감.', ai_channel_summary: '대학생 뷰티 크리에이터. 18-22세 여성 시청자 중심.', post_url: 'https://www.youtube.com/watch?v=example_grwm3', created_dt: '2026-03-08T10:30:00Z' },
+      { id: 14, rank_no: 1, platform: 'tiktok', title: '출근 5분 메이크업 GRWM — 벨벳 틴트 하나면 끝!', author_nm: '@grwm_queen', view_count: 2150000, ai_post_summary: '바쁜 출근 5분 루틴에서 핵심 아이템으로 활용. 한 번 터치로 발색+보습 동시 달성. 댓글 대량 유입.', ai_channel_summary: 'GRWM 전문 TikTok 크리에이터. 20대 직장인 여성 타겟. 완시청률 52%.', post_url: 'https://www.tiktok.com/@grwm_queen/video/example_grwm1', created_dt: '2026-03-03T08:45:00Z' },
+      { id: 15, rank_no: 1, platform: 'instagram', title: '봄 데이트 메이크업 — 벨벳 로즈 컬러가 찰떡!', author_nm: '@makeup_daily_ji', view_count: 378000, ai_post_summary: '봄 데이트 메이크업 튜토리얼. 로즈 컬러를 메인 립으로 활용한 소프트 글램 룩. 자연광 아래 발색 시연.', ai_channel_summary: 'Instagram 데일리 메이크업 크리에이터. 저장율 9%.', post_url: 'https://www.instagram.com/reel/example_grwm2', created_dt: '2026-03-06T13:00:00Z' },
+    ]},
+    { category: '메이크업 룩', subcategory: '시즌/이벤트 룩', contents: [
+      { id: 16, rank_no: 1, platform: 'youtube', title: '벚꽃 시즌 메이크업 룩북 — 핑크 벨벳 립 포인트', author_nm: '뷰티 디렉터 민지', view_count: 367000, ai_post_summary: '봄 벚꽃 시즌에 어울리는 4가지 메이크업 룩. 쉬어 벨벳 베일 틴트 핑크 계열을 립 포인트로 활용.', ai_channel_summary: '시즌별 룩북 전문 YouTube. 트렌드 해석력 높은 평가.', post_url: 'https://www.youtube.com/watch?v=example_season1', created_dt: '2026-03-10T14:00:00Z' },
+      { id: 17, rank_no: 1, platform: 'tiktok', title: '화이트데이 메이크업 — 남자친구가 좋아하는 립 컬러', author_nm: '@date_beauty', view_count: 1560000, ai_post_summary: '화이트데이 데이트 메이크업 1분 튜토리얼. 쉬어 벨벳 베일 틴트 누드 핑크를 자연스러운 데이트 립으로 활용.', ai_channel_summary: 'TikTok 데이트 메이크업 전문. 20대 여성 팔로워 78%.', post_url: 'https://www.tiktok.com/@date_beauty/video/example_season2', created_dt: '2026-03-11T11:30:00Z' },
+      { id: 18, rank_no: 1, platform: 'instagram', title: '졸업식 메이크업 — 사진 잘 나오는 립 컬러 추천', author_nm: '@photo_makeup_kr', view_count: 298000, ai_post_summary: '졸업식/행사 메이크업에서 사진 촬영 시 가장 예쁘게 나오는 립 컬러 추천. 플래시 반사 테스트 포함.', ai_channel_summary: 'Instagram 행사 메이크업 전문 계정. 실용적 팁으로 높은 저장율.', post_url: 'https://www.instagram.com/p/example_season3', created_dt: '2026-03-12T09:00:00Z' },
+    ]},
+  ],
+  totalCategories: 6,
+  totalContents: 18,
+};
+
 // ─ UGC Creators ─
 export const mockUGCCreators = [
   { creator_id: 'UGCC_001', name: '미나', handle: '@skincare_mina', platform: 'instagram', followers: 45000, ugc_count: 3, quality_score: 92, conversion_status: 'converted' },
@@ -359,53 +402,147 @@ export const mockContentLibraryPreview = {
 // ─ Influencer Pool ─
 export const mockInfluencerPool = [
   // ── Partnered (3명) ──
-  { profile_id: 'INF_001', user_nm: 'Olivia Yang', platform: 'tiktok', followers: 2400000, avg_views: 840000, engagement_rate: 6.8, is_saved: true, stage: 'partnered', country: 'US', quick_summary: '글로벌 뷰티 메가 크리에이터. K-뷰티 트렌드 선도. 클렌징 루틴 콘텐츠 바이럴 경험.', profile_url: 'https://tiktok.com/@olafflee', profile_image: 'https://picsum.photos/seed/olafflee/100/100' },
-  { profile_id: 'INF_002', user_nm: '이시안 Lee Sian', platform: 'instagram', followers: 1200000, avg_views: 420000, engagement_rate: 7.5, is_saved: true, stage: 'partnered', country: 'KR', quick_summary: 'Instagram 메가 뷰티 인플루언서. 트렌드 세터. 바닐라코 장기 파트너.', profile_url: 'https://instagram.com/youseeany', profile_image: 'https://picsum.photos/seed/youseeany/100/100' },
-  { profile_id: 'INF_003', user_nm: '레오제이', platform: 'youtube', followers: 584300, avg_views: 204000, engagement_rate: 5.9, is_saved: true, stage: 'partnered', country: 'KR', quick_summary: '전문 메이크업 아티스트. 클렌징 비교 리뷰로 유명. 높은 신뢰도.', profile_url: 'https://youtube.com/@leojmakeup', profile_image: 'https://picsum.photos/seed/leojmakeup/100/100' },
+  { profile_id: 'INF_001', user_nm: 'Olivia Yang', platform: 'tiktok', followers: 2400000, avg_views: 840000, engagement_rate: 6.8, is_saved: true, stage: 'partnered', country: 'US', quick_summary: '글로벌 뷰티 메가 크리에이터. K-뷰티 트렌드 선도. 클렌징 루틴 콘텐츠 바이럴 경험.', profile_url: 'https://tiktok.com/@olafflee', profile_image: 'https://picsum.photos/seed/olafflee/100/100', collected_at: '2026-01-15T09:30:00Z' },
+  { profile_id: 'INF_002', user_nm: '이시안 Lee Sian', platform: 'instagram', followers: 1200000, avg_views: 420000, engagement_rate: 7.5, is_saved: true, stage: 'partnered', country: 'KR', quick_summary: 'Instagram 메가 뷰티 인플루언서. 트렌드 세터. 바닐라코 장기 파트너.', profile_url: 'https://instagram.com/youseeany', profile_image: 'https://picsum.photos/seed/youseeany/100/100', collected_at: '2026-01-18T14:20:00Z' },
+  { profile_id: 'INF_003', user_nm: '레오제이', platform: 'youtube', followers: 584300, avg_views: 204000, engagement_rate: 5.9, is_saved: true, stage: 'partnered', country: 'KR', quick_summary: '전문 메이크업 아티스트. 클렌징 비교 리뷰로 유명. 높은 신뢰도.', profile_url: 'https://youtube.com/@leojmakeup', profile_image: 'https://picsum.photos/seed/leojmakeup/100/100', collected_at: '2026-01-20T11:45:00Z' },
 
   // ── Performing (4명) ──
-  { profile_id: 'INF_004', user_nm: 'Olia Majd', platform: 'tiktok', followers: 409100, avg_views: 143000, engagement_rate: 6.2, is_saved: true, stage: 'performing', country: 'US', quick_summary: '글로벌 뷰티 크리에이터. 스킨케어 루틴/리뷰 전문. 높은 참여율.', profile_url: 'https://tiktok.com/@oliamajd', profile_image: 'https://picsum.photos/seed/oliamajd/100/100' },
-  { profile_id: 'INF_005', user_nm: '미선짱', platform: 'instagram', followers: 405800, avg_views: 142000, engagement_rate: 5.8, is_saved: true, stage: 'performing', country: 'KR', quick_summary: '뷰티/라이프스타일 크리에이터. 릴스 전문. 밝은 에너지 콘텐츠.', profile_url: 'https://instagram.com/sunn416', profile_image: 'https://picsum.photos/seed/sunn416/100/100' },
-  { profile_id: 'INF_006', user_nm: 'Hasime Kukaj', platform: 'youtube', followers: 349300, avg_views: 122000, engagement_rate: 6.0, is_saved: true, stage: 'performing', country: 'US', quick_summary: '글로벌 뷰티 리뷰어. 스킨케어 추천 콘텐츠. 클렌징 밤 전문.', profile_url: 'https://youtube.com/@thebeautyradar', profile_image: 'https://picsum.photos/seed/thebeautyradar/100/100' },
-  { profile_id: 'INF_007', user_nm: '권은지', platform: 'tiktok', followers: 337900, avg_views: 118000, engagement_rate: 7.1, is_saved: true, stage: 'performing', country: 'US', quick_summary: '한국계 미국 뷰티 크리에이터. K-뷰티 브릿지 역할. 영어 콘텐츠.', profile_url: 'https://tiktok.com/@3eunji__', profile_image: 'https://picsum.photos/seed/3eunji__/100/100' },
+  { profile_id: 'INF_004', user_nm: 'Olia Majd', platform: 'tiktok', followers: 409100, avg_views: 143000, engagement_rate: 6.2, is_saved: true, stage: 'performing', country: 'US', quick_summary: '글로벌 뷰티 크리에이터. 스킨케어 루틴/리뷰 전문. 높은 참여율.', profile_url: 'https://tiktok.com/@oliamajd', profile_image: 'https://picsum.photos/seed/oliamajd/100/100', collected_at: '2026-01-22T10:15:00Z' },
+  { profile_id: 'INF_005', user_nm: '미선짱', platform: 'instagram', followers: 405800, avg_views: 142000, engagement_rate: 5.8, is_saved: true, stage: 'performing', country: 'KR', quick_summary: '뷰티/라이프스타일 크리에이터. 릴스 전문. 밝은 에너지 콘텐츠.', profile_url: 'https://instagram.com/sunn416', profile_image: 'https://picsum.photos/seed/sunn416/100/100', collected_at: '2026-01-25T16:30:00Z' },
+  { profile_id: 'INF_006', user_nm: 'Hasime Kukaj', platform: 'youtube', followers: 349300, avg_views: 122000, engagement_rate: 6.0, is_saved: true, stage: 'performing', country: 'US', quick_summary: '글로벌 뷰티 리뷰어. 스킨케어 추천 콘텐츠. 클렌징 밤 전문.', profile_url: 'https://youtube.com/@thebeautyradar', profile_image: 'https://picsum.photos/seed/thebeautyradar/100/100', collected_at: '2026-01-28T08:50:00Z' },
+  { profile_id: 'INF_007', user_nm: '권은지', platform: 'tiktok', followers: 337900, avg_views: 118000, engagement_rate: 7.1, is_saved: true, stage: 'performing', country: 'US', quick_summary: '한국계 미국 뷰티 크리에이터. K-뷰티 브릿지 역할. 영어 콘텐츠.', profile_url: 'https://tiktok.com/@3eunji__', profile_image: 'https://picsum.photos/seed/3eunji__/100/100', collected_at: '2026-02-01T13:10:00Z' },
 
   // ── Posted (5명) ──
-  { profile_id: 'INF_008', user_nm: '메이크업 아티스트 NANA', platform: 'instagram', followers: 292600, avg_views: 102000, engagement_rate: 5.3, is_saved: true, stage: 'posted', country: 'KR', quick_summary: '전문 메이크업 아티스트. 뷰티 튜토리얼/클렌징 루틴 전문.', profile_url: 'https://instagram.com/_twinkle_makeup_', profile_image: 'https://picsum.photos/seed/_twinkle_makeup_/100/100' },
-  { profile_id: 'INF_009', user_nm: 'Candace Hampton-Fudge', platform: 'tiktok', followers: 261200, avg_views: 91000, engagement_rate: 4.8, is_saved: true, stage: 'posted', country: 'US', quick_summary: '댈러스 기반 뷰티 크리에이터. 리얼 리뷰 전문. 성인 스킨케어.', profile_url: 'https://tiktok.com/@thebeautybeau', profile_image: 'https://picsum.photos/seed/thebeautybeau/100/100' },
-  { profile_id: 'INF_010', user_nm: '꿀아영(신아영)', platform: 'youtube', followers: 245100, avg_views: 86000, engagement_rate: 6.4, is_saved: true, stage: 'posted', country: 'KR', quick_summary: '뷰티/일상 크리에이터. 올리브영 리뷰 전문. 높은 댓글 참여율.', profile_url: 'https://youtube.com/@dkdud5070', profile_image: 'https://picsum.photos/seed/dkdud5070/100/100' },
-  { profile_id: 'INF_011', user_nm: '이향 LEE HYANG', platform: 'instagram', followers: 227900, avg_views: 80000, engagement_rate: 5.1, is_saved: true, stage: 'posted', country: 'KR', quick_summary: '뷰티/메이크업 크리에이터. 데일리 루틴 콘텐츠. 차분한 톤.', profile_url: 'https://instagram.com/_leehyang', profile_image: 'https://picsum.photos/seed/_leehyang/100/100' },
-  { profile_id: 'INF_012', user_nm: '加藤 美南', platform: 'tiktok', followers: 202300, avg_views: 71000, engagement_rate: 4.5, is_saved: true, stage: 'posted', country: 'JP', quick_summary: '일본 출신 뷰티 크리에이터. K-뷰티 리뷰. 동아시아 영향력.', profile_url: 'https://tiktok.com/@minamikato_0115', profile_image: 'https://picsum.photos/seed/minamikato/100/100' },
+  { profile_id: 'INF_008', user_nm: '메이크업 아티스트 NANA', platform: 'instagram', followers: 292600, avg_views: 102000, engagement_rate: 5.3, is_saved: true, stage: 'posted', country: 'KR', quick_summary: '전문 메이크업 아티스트. 뷰티 튜토리얼/클렌징 루틴 전문.', profile_url: 'https://instagram.com/_twinkle_makeup_', profile_image: 'https://picsum.photos/seed/_twinkle_makeup_/100/100', collected_at: '2026-02-03T09:00:00Z' },
+  { profile_id: 'INF_009', user_nm: 'Candace Hampton-Fudge', platform: 'tiktok', followers: 261200, avg_views: 91000, engagement_rate: 4.8, is_saved: true, stage: 'posted', country: 'US', quick_summary: '댈러스 기반 뷰티 크리에이터. 리얼 리뷰 전문. 성인 스킨케어.', profile_url: 'https://tiktok.com/@thebeautybeau', profile_image: 'https://picsum.photos/seed/thebeautybeau/100/100', collected_at: '2026-02-05T15:40:00Z' },
+  { profile_id: 'INF_010', user_nm: '꿀아영(신아영)', platform: 'youtube', followers: 245100, avg_views: 86000, engagement_rate: 6.4, is_saved: true, stage: 'posted', country: 'KR', quick_summary: '뷰티/일상 크리에이터. 올리브영 리뷰 전문. 높은 댓글 참여율.', profile_url: 'https://youtube.com/@dkdud5070', profile_image: 'https://picsum.photos/seed/dkdud5070/100/100', collected_at: '2026-02-08T11:25:00Z' },
+  { profile_id: 'INF_011', user_nm: '이향 LEE HYANG', platform: 'instagram', followers: 227900, avg_views: 80000, engagement_rate: 5.1, is_saved: true, stage: 'posted', country: 'KR', quick_summary: '뷰티/메이크업 크리에이터. 데일리 루틴 콘텐츠. 차분한 톤.', profile_url: 'https://instagram.com/_leehyang', profile_image: 'https://picsum.photos/seed/_leehyang/100/100', collected_at: '2026-02-10T17:00:00Z' },
+  { profile_id: 'INF_012', user_nm: '加藤 美南', platform: 'tiktok', followers: 202300, avg_views: 71000, engagement_rate: 4.5, is_saved: true, stage: 'posted', country: 'JP', quick_summary: '일본 출신 뷰티 크리에이터. K-뷰티 리뷰. 동아시아 영향력.', profile_url: 'https://tiktok.com/@minamikato_0115', profile_image: 'https://picsum.photos/seed/minamikato/100/100', collected_at: '2026-02-12T10:35:00Z' },
 
   // ── Seeded (4명) ──
-  { profile_id: 'INF_013', user_nm: '모델 심지영', platform: 'instagram', followers: 193900, avg_views: 68000, engagement_rate: 4.8, is_saved: true, stage: 'seeded', country: 'KR', quick_summary: '프로 모델 겸 뷰티 크리에이터. 메이크업/클렌징 루틴 콘텐츠.', profile_url: 'https://instagram.com/jy____shim', profile_image: 'https://picsum.photos/seed/jy____shim/100/100' },
-  { profile_id: 'INF_014', user_nm: 'Grazy Grace', platform: 'youtube', followers: 145600, avg_views: 51000, engagement_rate: 7.2, is_saved: true, stage: 'seeded', country: 'US', quick_summary: '한국계 미국 크리에이터. 뷰티/라이프스타일. 영어 콘텐츠.', profile_url: 'https://youtube.com/@gebabyk', profile_image: 'https://picsum.photos/seed/gebabyk/100/100' },
-  { profile_id: 'INF_015', user_nm: '倉田乃彩', platform: 'tiktok', followers: 144100, avg_views: 50000, engagement_rate: 5.0, is_saved: true, stage: 'seeded', country: 'JP', quick_summary: '일본 뷰티 크리에이터. K-뷰티 리뷰 전문. 일본 시장 영향력.', profile_url: 'https://tiktok.com/@i_09_noa', profile_image: 'https://picsum.photos/seed/i_09_noa/100/100' },
-  { profile_id: 'INF_016', user_nm: 'Shim hye jin', platform: 'instagram', followers: 140100, avg_views: 49000, engagement_rate: 4.8, is_saved: true, stage: 'seeded', country: 'KR', quick_summary: '뷰티/패션 크리에이터. 일본어/영어 다국어 콘텐츠.', profile_url: 'https://instagram.com/hyedini_sim', profile_image: 'https://picsum.photos/seed/hyedini_sim/100/100' },
+  { profile_id: 'INF_013', user_nm: '모델 심지영', platform: 'instagram', followers: 193900, avg_views: 68000, engagement_rate: 4.8, is_saved: true, stage: 'seeded', country: 'KR', quick_summary: '프로 모델 겸 뷰티 크리에이터. 메이크업/클렌징 루틴 콘텐츠.', profile_url: 'https://instagram.com/jy____shim', profile_image: 'https://picsum.photos/seed/jy____shim/100/100', collected_at: '2026-02-15T14:50:00Z' },
+  { profile_id: 'INF_014', user_nm: 'Grazy Grace', platform: 'youtube', followers: 145600, avg_views: 51000, engagement_rate: 7.2, is_saved: true, stage: 'seeded', country: 'US', quick_summary: '한국계 미국 크리에이터. 뷰티/라이프스타일. 영어 콘텐츠.', profile_url: 'https://youtube.com/@gebabyk', profile_image: 'https://picsum.photos/seed/gebabyk/100/100', collected_at: '2026-02-18T09:20:00Z' },
+  { profile_id: 'INF_015', user_nm: '倉田乃彩', platform: 'tiktok', followers: 144100, avg_views: 50000, engagement_rate: 5.0, is_saved: true, stage: 'seeded', country: 'JP', quick_summary: '일본 뷰티 크리에이터. K-뷰티 리뷰 전문. 일본 시장 영향력.', profile_url: 'https://tiktok.com/@i_09_noa', profile_image: 'https://picsum.photos/seed/i_09_noa/100/100', collected_at: '2026-02-20T12:15:00Z' },
+  { profile_id: 'INF_016', user_nm: 'Shim hye jin', platform: 'instagram', followers: 140100, avg_views: 49000, engagement_rate: 4.8, is_saved: true, stage: 'seeded', country: 'KR', quick_summary: '뷰티/패션 크리에이터. 일본어/영어 다국어 콘텐츠.', profile_url: 'https://instagram.com/hyedini_sim', profile_image: 'https://picsum.photos/seed/hyedini_sim/100/100', collected_at: '2026-02-22T16:45:00Z' },
 
   // ── Discovered (4명) ──
-  { profile_id: 'INF_017', user_nm: 'Megan', platform: 'tiktok', followers: 131700, avg_views: 46000, engagement_rate: 7.8, is_saved: false, stage: 'discovered', country: 'US', quick_summary: '글로벌 뷰티 리뷰어. K-뷰티 전문. 높은 참여율.', profile_url: 'https://tiktok.com/@milktea.meg', profile_image: 'https://picsum.photos/seed/milktea.meg/100/100' },
-  { profile_id: 'INF_018', user_nm: '오민초 Mincho Oh', platform: 'youtube', followers: 121500, avg_views: 43000, engagement_rate: 5.6, is_saved: false, stage: 'discovered', country: 'KR', quick_summary: '뷰티/라이프 크리에이터. 자연스러운 데일리 루틴.', profile_url: 'https://youtube.com/@mincho_oh', profile_image: 'https://picsum.photos/seed/mincho_oh/100/100' },
-  { profile_id: 'INF_019', user_nm: '채원 Chaewon', platform: 'instagram', followers: 119000, avg_views: 42000, engagement_rate: 7.4, is_saved: false, stage: 'discovered', country: 'US', quick_summary: '글로벌 K-뷰티 크리에이터. 영어 콘텐츠. 높은 참여율.', profile_url: 'https://instagram.com/chaewonsays', profile_image: 'https://picsum.photos/seed/chaewonsays/100/100' },
-  { profile_id: 'INF_020', user_nm: '모하뉴', platform: 'tiktok', followers: 99400, avg_views: 35000, engagement_rate: 6.5, is_saved: false, stage: 'discovered', country: 'KR', quick_summary: '뷰티/일상 크리에이터. 스킨케어 루틴 콘텐츠. 댓글 소통 활발.', profile_url: 'https://tiktok.com/@ujjja_e', profile_image: 'https://picsum.photos/seed/ujjja_e/100/100' },
+  { profile_id: 'INF_017', user_nm: 'Megan', platform: 'tiktok', followers: 131700, avg_views: 46000, engagement_rate: 7.8, is_saved: false, stage: 'discovered', country: 'US', quick_summary: '글로벌 뷰티 리뷰어. K-뷰티 전문. 높은 참여율.', profile_url: 'https://tiktok.com/@milktea.meg', profile_image: 'https://picsum.photos/seed/milktea.meg/100/100', collected_at: '2026-02-25T08:30:00Z' },
+  { profile_id: 'INF_018', user_nm: '오민초 Mincho Oh', platform: 'youtube', followers: 121500, avg_views: 43000, engagement_rate: 5.6, is_saved: false, stage: 'discovered', country: 'KR', quick_summary: '뷰티/라이프 크리에이터. 자연스러운 데일리 루틴.', profile_url: 'https://youtube.com/@mincho_oh', profile_image: 'https://picsum.photos/seed/mincho_oh/100/100', collected_at: '2026-02-28T11:00:00Z' },
+  { profile_id: 'INF_019', user_nm: '채원 Chaewon', platform: 'instagram', followers: 119000, avg_views: 42000, engagement_rate: 7.4, is_saved: false, stage: 'discovered', country: 'US', quick_summary: '글로벌 K-뷰티 크리에이터. 영어 콘텐츠. 높은 참여율.', profile_url: 'https://instagram.com/chaewonsays', profile_image: 'https://picsum.photos/seed/chaewonsays/100/100', collected_at: '2026-03-02T13:40:00Z' },
+  { profile_id: 'INF_020', user_nm: '모하뉴', platform: 'tiktok', followers: 99400, avg_views: 35000, engagement_rate: 6.5, is_saved: false, stage: 'discovered', country: 'KR', quick_summary: '뷰티/일상 크리에이터. 스킨케어 루틴 콘텐츠. 댓글 소통 활발.', profile_url: 'https://tiktok.com/@ujjja_e', profile_image: 'https://picsum.photos/seed/ujjja_e/100/100', collected_at: '2026-03-05T15:20:00Z' },
 ];
 
-// ─ Influencer Deep Analysis ─
+// ─ Influencer Deep Analysis (프로필별 심층 분석 결과) ─
+const _deepAnalysisProfiles = {
+  INF_001: {
+    overview: {
+      '성별': '여성', '연령대': '20-30대',
+      '라이프스타일': ['글로벌 K-뷰티 트렌드세터', 'GRWM 루틴 전문가', '뷰티 덕후'],
+      '콘텐츠': 'K-뷰티 클렌징/스킨케어 루틴을 TikTok에서 바이럴시키는 메가 크리에이터. GRWM과 ASMR 포맷으로 높은 완시청률 달성.',
+      '채널 특징': { '톤앤무드': '밝고 트렌디, 친근한 언니 느낌', '특징': 'K-뷰티 전문 글로벌 채널', '연출 스타일': '클로즈업 중심, 빠른 컷 편집, 트렌딩 사운드 활용' },
+      '피부특성': { '피부타입': '복합성', '피부특징': '수분 밸런스 중시, 클렌징 루틴 강조' },
+      '타겟_오디언스': {
+        '설명': ['P1 피부 입문자 — 뷰티 트렌드에 민감한 Z세대', 'P3 스킨케어 마니아 — 성분/루틴에 관심 높은 팔로워'],
+        '태그': ['#K뷰티루틴', '#클렌징밤', '#GRWM', '#스킨케어팁', '#겟레디윗미'],
+      },
+      '콘텐츠 강점': { '팔로워_특징': '18-24 여성 42%, 높은 Z세대 비중', '주간_컨텐츠_업로드_평균_회수_최근30일': '주 5.5회', '인게이지먼트_최근30일': '6.8% (카테고리 평균 3.2% 대비 2.1배)' },
+      '최근_30일_콘텐츠_유형_분포': { '유형별_비중': [{ '유형': 'GRWM/루틴', '비중': '40%' }, { '유형': '제품 리뷰', '비중': '30%' }, { '유형': 'ASMR', '비중': '20%' }, { '유형': '일상 브이로그', '비중': '10%' }] },
+      '주요_토픽_및_키워드': ['K-뷰티 루틴', '클렌징 리뷰', '스킨케어 팁', '겟레디윗미', 'ASMR 언박싱', '올리브영 추천'],
+      '시딩_캠페인_적용_포인트': [
+        'GRWM 포맷에서 클렌징 단계 자연스럽게 제품 노출 — 완시청률 45%+ 기대',
+        'ASMR 포맷 활용 시 제품 텍스처·소리 강조로 감각적 소구 가능',
+        '글로벌 팔로워 비중 높아 해외 시장 동시 노출 효과',
+        '기존 K-뷰티 클렌징 콘텐츠 바이럴 경험으로 빠른 초기 도달 예상',
+      ],
+    },
+    contentAnalysis: {
+      '콘텐츠_최적화_개선안_마크다운': '### 🟢 강점\n**GRWM 루틴 콘텐츠** 완시청률이 카테고리 평균 대비 2배 이상 높음\n**트렌딩 사운드 활용** 알고리즘 노출 극대화\n\n### 🟡 개선 포인트\n**제품 클로즈업 시간** 현재 평균 3초 → 5초로 확대 시 브랜드 인지도 +15%\n**CTA 삽입** 영상 후반 구매 링크 언급 추가 필요\n\n### 🔴 주의사항\n**광고 표시** FTC 가이드라인 준수 필수 — #ad 또는 #sponsored 태그',
+    },
+  },
+  INF_002: {
+    overview: {
+      '성별': '여성', '연령대': '25-34세',
+      '라이프스타일': ['K-뷰티 트렌드 세터', '인스타 릴스 전문가', '감성 뷰티'],
+      '콘텐츠': 'Instagram 메가 뷰티 인플루언서. 감성적 비주얼과 전문적 리뷰를 결합한 콘텐츠로 높은 저장율 달성.',
+      '채널 특징': { '톤앤무드': '세련되고 감성적, 프리미엄 느낌', '특징': 'Instagram 뷰티 카테고리 TOP 크리에이터', '연출 스타일': '고퀄리티 비주얼, 캐러셀 활용, 디테일 샷' },
+      '피부특성': { '피부타입': '건성', '피부특징': '보습 중심 루틴, 촉촉한 피부 강조' },
+      '타겟_오디언스': {
+        '설명': ['P3 스킨케어 마니아 — 성분/효능에 관심 높은 팔로워', 'P11 럭셔리 스테이머 — 프리미엄 뷰티에 관심'],
+        '태그': ['#뷰티리뷰', '#스킨케어', '#인스타뷰티', '#감성메이크업', '#데일리루틴'],
+      },
+      '콘텐츠 강점': { '팔로워_특징': '25-34 여성 52%, 고소득 직장인 비중 높음', '주간_컨텐츠_업로드_평균_회수_최근30일': '주 4.2회', '인게이지먼트_최근30일': '7.5% (카테고리 평균 2.8% 대비 2.7배)' },
+      '최근_30일_콘텐츠_유형_분포': { '유형별_비중': [{ '유형': '릴스 리뷰', '비중': '45%' }, { '유형': '캐러셀 성분분석', '비중': '25%' }, { '유형': '일상 스토리', '비중': '20%' }, { '유형': '콜라보', '비중': '10%' }] },
+      '주요_토픽_및_키워드': ['뷰티 리뷰', '스킨케어 루틴', '성분 분석', '데일리 메이크업', '올리브영 추천'],
+      '시딩_캠페인_적용_포인트': [
+        '캐러셀 포맷에서 Before/After + 성분 설명 → 저장율 8%+ 기대',
+        '장기 파트너십 경험으로 브랜드 메시지 자연스러운 전달 가능',
+        '높은 저장율이 특징 — Reveal 단계 교육형 콘텐츠에 최적',
+        '감성적 비주얼로 프리미엄 브랜드 이미지 강화 효과',
+      ],
+    },
+    contentAnalysis: {
+      '콘텐츠_최적화_개선안_마크다운': '### 🟢 강점\n**감성 비주얼** 저장율이 카테고리 평균 3배 이상\n**캐러셀 활용** 성분 교육 콘텐츠 높은 완독률\n\n### 🟡 개선 포인트\n**릴스 길이** 현재 45초 평균 → 30초 이내로 축소 시 완시청률 +20%\n**해시태그 전략** 브랜드 태그 + 카테고리 태그 조합 최적화 필요',
+    },
+  },
+  INF_003: {
+    overview: {
+      '성별': '남성', '연령대': '30-40대',
+      '라이프스타일': ['전문 메이크업 아티스트', '클렌징 비교 리뷰어', '신뢰도 높은 전문가'],
+      '콘텐츠': 'YouTube 전문 메이크업 아티스트. 클렌징 비교 리뷰로 유명하며, 객관적이고 전문적인 분석으로 높은 신뢰도 보유.',
+      '채널 특징': { '톤앤무드': '전문적이고 신뢰감 있는, 차분한 톤', '특징': '클렌징/스킨케어 비교 리뷰 전문', '연출 스타일': '상세 클로즈업, 비교 실험, 성분 분석 자막' },
+      '피부특성': { '피부타입': '지성', '피부특징': '클렌징력 비교, 모공 관리 전문' },
+      '타겟_오디언스': {
+        '설명': ['P3 스킨케어 마니아 — 성분/비교 분석에 관심', 'P7 트러블 슈터 — 클렌징+모공 관리 관심'],
+        '태그': ['#클렌징비교', '#뷰티전문가', '#성분분석', '#메이크업아티스트', '#스킨케어리뷰'],
+      },
+      '콘텐츠 강점': { '팔로워_특징': '25-44 남녀 골고루, 뷰티 전문 관심층', '주간_컨텐츠_업로드_평균_회수_최근30일': '주 2.5회', '인게이지먼트_최근30일': '5.9% (YouTube 뷰티 카테고리 평균 2.1% 대비 2.8배)' },
+      '최근_30일_콘텐츠_유형_분포': { '유형별_비중': [{ '유형': '비교 리뷰', '비중': '50%' }, { '유형': '튜토리얼', '비중': '25%' }, { '유형': '성분 분석', '비중': '15%' }, { '유형': '일상', '비중': '10%' }] },
+      '주요_토픽_및_키워드': ['클렌징 비교', '성분 분석', '메이크업 튜토리얼', '스킨케어 루틴', '뷰티 전문가 추천'],
+      '시딩_캠페인_적용_포인트': [
+        '비교 리뷰 포맷에서 경쟁사 대비 우위를 객관적으로 보여줄 수 있음',
+        'Validate 단계 전문가 리뷰로 구매 확신 강화에 최적',
+        '높은 시청 시간 — 상세 리뷰 콘텐츠 완시청률 68%+',
+        '댓글 질의응답 활발 — 제품 궁금증 해소에 효과적',
+      ],
+    },
+    contentAnalysis: {
+      '콘텐츠_최적화_개선안_마크다운': '### 🟢 강점\n**비교 리뷰 전문성** 시청자 신뢰도 최상위\n**상세 분석** 시청 시간 카테고리 대비 1.8배\n\n### 🟡 개선 포인트\n**썸네일 최적화** CTR 현재 4.2% → 비교 이미지 강조 시 6%+ 기대\n**Shorts 활용** 비교 하이라이트 30초 편집 → 신규 유입 확대',
+    },
+  },
+};
+
+// 기본 fallback (프로필별 매핑 없는 인플루언서용)
+const _defaultDeepAnalysis = {
+  overview: {
+    '성별': '여성', '연령대': '20-30대',
+    '라이프스타일': ['뷰티 크리에이터', '스킨케어 관심'],
+    '콘텐츠': '뷰티/스킨케어 전문 크리에이터. 제품 리뷰와 루틴 콘텐츠로 꾸준한 팔로워 성장 중.',
+    '채널 특징': { '톤앤무드': '밝고 친근한', '특징': '뷰티 리뷰 전문 채널', '연출 스타일': '자연광 촬영, 깔끔한 편집' },
+    '피부특성': { '피부타입': '복합성', '피부특징': '일반적 스킨케어 루틴 중시' },
+    '타겟_오디언스': {
+      '설명': ['P1 피부 입문자 — 기본 스킨케어에 관심', 'P2 효율 추구형 — 가성비 제품 선호'],
+      '태그': ['#뷰티', '#스킨케어', '#데일리루틴', '#제품리뷰'],
+    },
+    '콘텐츠 강점': { '팔로워_특징': '20-34 여성 중심', '주간_컨텐츠_업로드_평균_회수_최근30일': '주 3회', '인게이지먼트_최근30일': '5.2%' },
+    '최근_30일_콘텐츠_유형_분포': { '유형별_비중': [{ '유형': '제품 리뷰', '비중': '45%' }, { '유형': '루틴 콘텐츠', '비중': '30%' }, { '유형': '일상', '비중': '25%' }] },
+    '주요_토픽_및_키워드': ['뷰티 리뷰', '스킨케어 루틴', '올리브영 추천', '데일리 메이크업'],
+    '시딩_캠페인_적용_포인트': [
+      '제품 리뷰 콘텐츠에서 자연스러운 사용 장면 연출 가능',
+      '팔로워와의 소통이 활발하여 댓글 기반 바이럴 기대',
+    ],
+  },
+  contentAnalysis: {
+    '콘텐츠_최적화_개선안_마크다운': '### 🟢 강점\n**꾸준한 업로드** 팔로워 신뢰도 확보\n\n### 🟡 개선 포인트\n**CTA 강화** 제품 링크 및 프로모션 코드 활용 추가 권장',
+  },
+};
+
+export function getMockDeepAnalysis(profileId) {
+  return _deepAnalysisProfiles[profileId] || _defaultDeepAnalysis;
+}
+
 export const mockInfluencerDeepAnalysis = {
   success: true,
-  data: {
-    profile_id: 'INF_001',
-    name: 'Olivia Yang',
-    platform: 'tiktok',
-    demographics: { gender_ratio: { female: 87, male: 13 }, age_groups: { '18-24': 42, '25-34': 38, '35-44': 14, '45+': 6 }, top_locations: ['미국', '한국', '일본'] },
-    posting_frequency: { weekly_avg: 5.5, best_day: '수요일', best_time: '19:00' },
-    engagement_analysis: { avg_likes: 168000, avg_comments: 4200, avg_shares: 8500, engagement_rate: 6.8, trend: 'rising' },
-    audience_growth: { monthly_growth_rate: 4.5, total_growth_6m: 380000 },
-    content_themes: ['K-뷰티 루틴', '클렌징 리뷰', '스킨케어 팁', '겟레디윗미', 'ASMR'],
-    shooting_style: '밝은 조명, 클로즈업 중심, 트렌디한 전환',
-    editing_style: '빠른 컷 편집, 자막 활용, 트렌딩 사운드',
-    brand_fit_score: 96,
-    recommended_content_types: ['grwm', 'routine', 'asmr', 'comparison'],
-  },
+  data: _deepAnalysisProfiles.INF_001,
 };
 
 // ─ Roles & Permissions ─
@@ -559,7 +696,7 @@ function resolveByURL(pathname) {
     if (subPath === '/creatives') return mockCreatives;
     if (/^\/creatives\/[^/]+$/.test(subPath)) {
       const cid = subPath.split('/').pop();
-      return mockCreatives.find(c => c.creative_id === cid) || mockCreatives[0];
+      return mockCreatives.find(c => String(c.creative_id) === String(cid)) || mockCreatives[0];
     }
     if (subPath === '/influencers') return mockInfluencers;
     if (subPath === '/outreach') return mockOutreach;
@@ -598,11 +735,16 @@ function resolveByURL(pathname) {
   if (pathname === '/api/contents/ugc') return mockContentLibraryUGC;
   if (pathname === '/api/contents/preview') return mockContentLibraryPreview;
   if (pathname === '/api/contents/performance') return { list: [] };
+  if (pathname === '/api/contents/ugc/insights') return mockUGCCategoryInsights;
 
   // Influencer
   if (pathname === '/api/influencer/list') return { success: true, list: mockInfluencerPool };
   if (pathname === '/api/influencer/count') return { success: true, count: mockInfluencerPool.length };
-  if (/^\/api\/influencer\/deep-analysis\//.test(pathname)) return mockInfluencerDeepAnalysis;
+  if (pathname === '/api/influencer/partnered-count') return { success: true, count: mockInfluencerPool.filter(i => i.stage === 'partnered').length };
+  if (/^\/api\/influencer\/deep-analysis\//.test(pathname)) {
+    const profileId = pathname.split('/').pop();
+    return { success: true, data: getMockDeepAnalysis(profileId) };
+  }
 
   // Roles
   if (pathname === '/api/roles') return mockRoles;
@@ -640,6 +782,21 @@ export function installDemoFetchInterceptor() {
       return jsonResponse(mockVideoAnalysisStatuses);
     }
 
+    // 인플루언서 심층 분석 → 프로필별 분석 결과 반환
+    if (method === 'POST' && pathname === '/api/influencer/deep-analysis') {
+      await delay(1500);
+      let profileId = null;
+      try {
+        const body = JSON.parse(init.body || '{}');
+        profileId = body.influencers?.[0]?.profile_id;
+      } catch (_) { /* ignore */ }
+      const analysis = getMockDeepAnalysis(profileId);
+      return jsonResponse({
+        success: true,
+        results: [{ profile_id: profileId, analysis }],
+      });
+    }
+
     // 론칭 서사 아크 AI 생성 → mockNarrativeArc 반환
     const narrativeArcGenMatch = pathname.match(/^\/api\/v2\/campaigns\/[^/]+\/narrative-arc\/generate$/);
     if (method === 'POST' && narrativeArcGenMatch) {
@@ -659,6 +816,20 @@ export function installDemoFetchInterceptor() {
       await delay(250);
       const data = resolveByURL(pathname);
       return jsonResponse(structuredClone(data));
+    }
+
+    // TTS 나레이션 생성 (Typecast mock)
+    if (method === 'POST' && pathname === '/api/v2/tts/generate') {
+      await delay(2000);
+      return jsonResponse({
+        success: true,
+        data: {
+          audio_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
+          duration: 3.2,
+          actor_id: 'vhyeri',
+          emotion: 'normal',
+        },
+      });
     }
 
     // POST/PUT/PATCH/DELETE → 성공 응답
