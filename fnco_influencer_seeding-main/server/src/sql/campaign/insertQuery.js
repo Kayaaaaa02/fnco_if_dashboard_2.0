@@ -3,7 +3,7 @@ export const insertCampaign = (data) => {
     const params = [
         data.campaign_id,
         data.campaign_name,
-        data.brand_cd || null,
+        data.brand || null,
         data.category || null,
         data.subcategory || null,
         data.product_name || null,
@@ -19,7 +19,7 @@ export const insertCampaign = (data) => {
             INSERT INTO mst_campaign (
                 campaign_id,
                 campaign_name,
-                brand_cd,
+                brand,
                 category,
                 subcategory,
                 product_name,

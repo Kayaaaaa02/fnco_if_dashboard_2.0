@@ -28,7 +28,7 @@ export const update_plan_ai_image_selected_query = (param) => {
 
     return {
         updateQuery: `
-            UPDATE fnco_influencer.dw_plan_ai_image
+            UPDATE fnco_influencer.dw_plan_ai_image_v2
             SET is_selected = $1
             ${whereClause}
         `,

@@ -44,7 +44,7 @@ export default function CampaignHub() {
       : { bg: tokens.color.surfaceMuted, color: tokens.color.textSubtle };
 
   const infoItems = [
-    { label: '브랜드', value: campaign.brand_cd },
+    { label: '브랜드', value: campaign.brand || campaign.brand_cd },
     { label: '카테고리', value: campaign.category },
     { label: '서브카테고리', value: campaign.subcategory },
     { label: '제품', value: campaign.product_name },

@@ -199,6 +199,12 @@ export default function CreativeEditor() {
           campaign={campaign}
           initialView={searchParams.get('view') || undefined}
           onBack={() => navigate(`/campaigns/${campaignId}/creative?tab=ai_generated`)}
+          onPrev={() => {
+            updateCreative.mutate(
+              { campaignId, creativeId, status: 'draft' },
+              { onSuccess: () => navigate(`/campaigns/${campaignId}/creative/${creativeId}`) },
+            );
+          }}
           onSave={(editorData) => {
             return new Promise((resolve, reject) => {
               const existingGuide = creative?.production_guide || {};
@@ -244,7 +250,12 @@ export default function CreativeEditor() {
         <FinalReviewEditor
           creative={mergedCreative}
           campaign={campaign}
-          onBack={() => navigate(`/campaigns/${campaignId}/creative?tab=human_edited`)}
+          onBack={() => {
+            updateCreative.mutate(
+              { campaignId, creativeId, status: 'ai_generated' },
+              { onSuccess: () => navigate(`/campaigns/${campaignId}/creative/${creativeId}`) },
+            );
+          }}
           isSaving={updateCreative.isPending}
           onSave={(saveData) => {
             return new Promise((resolve, reject) => {

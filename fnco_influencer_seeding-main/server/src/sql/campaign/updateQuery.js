@@ -2,7 +2,7 @@
 export const updateCampaign = (campaignId, data) => {
     const allowedFields = [
         'campaign_name',
-        'brand_cd',
+        'brand',
         'category',
         'subcategory',
         'product_name',

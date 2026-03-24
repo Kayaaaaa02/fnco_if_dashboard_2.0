@@ -10,7 +10,7 @@ export const get_plan_ai_images_query = (param) => {
     return {
         selectQuery: `
             SELECT step, img_url, is_selected
-            FROM fnco_influencer.dw_plan_ai_image
+            FROM fnco_influencer.dw_plan_ai_image_v2
             WHERE plan_doc_id = $1
               AND step BETWEEN 1 AND 4
             ORDER BY step ASC, is_selected DESC NULLS LAST, created_at DESC

@@ -8,9 +8,9 @@ export const selectCampaigns = (filters = {}) => {
         whereClause += ` AND status = $${params.length}`;
     }
 
-    if (filters.brand_cd) {
-        params.push(filters.brand_cd);
-        whereClause += ` AND brand_cd = $${params.length}`;
+    if (filters.brand) {
+        params.push(filters.brand);
+        whereClause += ` AND brand = $${params.length}`;
     }
 
     if (filters.country) {
@@ -28,7 +28,7 @@ export const selectCampaigns = (filters = {}) => {
             SELECT
                 campaign_id,
                 campaign_name,
-                brand_cd,
+                brand,
                 category,
                 subcategory,
                 product_name,
@@ -60,7 +60,7 @@ export const selectCampaignById = (campaignId) => {
             SELECT
                 campaign_id,
                 campaign_name,
-                brand_cd,
+                brand,
                 category,
                 subcategory,
                 product_name,
@@ -92,7 +92,7 @@ export const selectCampaignHub = (campaignId) => {
             SELECT
                 c.campaign_id,
                 c.campaign_name,
-                c.brand_cd,
+                c.brand,
                 c.category,
                 c.subcategory,
                 c.product_name,

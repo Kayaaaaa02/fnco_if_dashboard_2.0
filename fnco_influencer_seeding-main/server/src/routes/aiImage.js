@@ -29,10 +29,18 @@ router.post(
     generatePrompt
 );
 
-// AI 이미지 생성 (프롬프트 → Imagen → 이미지 URL 반환)
+// AI 이미지 생성 (프롬프트 → Gemini → 이미지 URL 반환)
 // POST /api/ai-image/generate-image
-// body: JSON { prompt, step_number, num_images? }
-router.post('/generate-image', generateImage);
+// multipart: payload (JSON 문자열), images (선택, 제품/모델 참고 이미지)
+// 또는 JSON body: { prompt, step_number, num_images?, plan_doc_id?, created_by? }
+router.post(
+    '/generate-image',
+    upload.fields([
+        { name: 'payload', maxCount: 1 },
+        { name: 'images', maxCount: 10 },
+    ]),
+    generateImage
+);
 
 // 생성된 이미지 클릭 시 선택/해제 → dw_plan_ai_image.is_selected 반영
 // PATCH /api/ai-image/image/select

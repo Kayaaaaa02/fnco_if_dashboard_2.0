@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs.j
 import {
   Sparkles, Loader2, PackageOpen, ThumbsUp, RefreshCw,
   FileEdit, CheckCircle2, Bot, FilePen, X, Trash2,
-  ChevronRight, Film, Image as ImageIcon,
+  ChevronRight, Film, Image as ImageIcon, ArrowLeft,
 } from 'lucide-react';
 import { tokens } from '@/styles/designTokens.js';
 
@@ -229,7 +229,13 @@ export default function CreativeList() {
   const [funnelFilter, setFunnelFilter] = useState('all');
   const [formatFilter, setFormatFilter] = useState('all');
 
-  const allCreatives = Array.isArray(creatives) ? creatives : [];
+  const allCreatives = useMemo(() =>
+    (Array.isArray(creatives) ? creatives : []).map((c) => ({
+      ...c,
+      id: c.id || c.creative_id,
+    })),
+    [creatives]
+  );
   const pdaConcepts = pdaData?.concepts || [];
 
   // 확정 컨셉을 모두 표시: 크리에이티브 매칭 + PDA 컨셉 폴백
@@ -327,9 +333,11 @@ export default function CreativeList() {
     );
   };
   const handleBulkStatusChange = (status) => {
+    const validIds = [...selectedIds].filter((id) => !String(id).startsWith('concept-'));
+    if (validIds.length === 0) return;
     bulkStatusUpdate.mutate(
-      { campaignId, creativeIds: [...selectedIds], status },
-      { onSuccess: clearSelection },
+      { campaignId, creativeIds: validIds, status },
+      { onSuccess: () => { clearSelection(); setActiveTab(status); } },
     );
   };
 
@@ -620,6 +628,17 @@ export default function CreativeList() {
         selectedCount={selectedCount}
         onClearSelection={clearSelection}
         actions={[
+          ...(activeTab !== 'draft' ? [{
+            label: '이전 단계로',
+            icon: <ArrowLeft className="size-3.5" />,
+            onClick: () => {
+              const prevStatusMap = { ai_generated: 'draft', human_edited: 'ai_generated', approved: 'human_edited' };
+              const prevStatus = prevStatusMap[activeTab];
+              if (prevStatus) handleBulkStatusChange(prevStatus);
+            },
+            variant: 'outline',
+            disabled: bulkStatusUpdate.isPending,
+          }] : []),
           {
             label: '일괄 승인',
             icon: <ThumbsUp className="size-3.5" />,
@@ -627,11 +646,15 @@ export default function CreativeList() {
             disabled: bulkStatusUpdate.isPending,
           },
           {
-            label: '상태 변경',
+            label: '다음 단계로',
             icon: <RefreshCw className="size-3.5" />,
-            onClick: () => handleBulkStatusChange('human_edited'),
+            onClick: () => {
+              const nextStatusMap = { draft: 'ai_generated', ai_generated: 'human_edited', human_edited: 'approved' };
+              const nextStatus = nextStatusMap[activeTab];
+              if (nextStatus) handleBulkStatusChange(nextStatus);
+            },
             variant: 'outline',
-            disabled: bulkStatusUpdate.isPending,
+            disabled: bulkStatusUpdate.isPending || activeTab === 'approved',
           },
         ]}
       />

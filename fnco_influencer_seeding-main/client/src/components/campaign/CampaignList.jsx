@@ -176,10 +176,10 @@ function CampaignCard({ campaign, onClick, onDelete }) {
 
       {/* Details */}
       <div className="space-y-1" style={{ fontSize: 13, color: tokens.color.textSubtle }}>
-        {campaign.brand_cd && (
+        {(campaign.brand || campaign.brand_cd) && (
           <div className="flex items-center gap-2">
             <span style={{ fontWeight: 500, minWidth: 40, color: tokens.color.textSubtle }}>브랜드</span>
-            <span style={{ color: tokens.color.text }}>{campaign.brand_cd}</span>
+            <span style={{ color: tokens.color.text }}>{campaign.brand || campaign.brand_cd}</span>
           </div>
         )}
         {campaign.product_name && (
@@ -356,7 +356,7 @@ export default function CampaignList() {
 
   const filters = {};
   if (statusFilter !== 'all') filters.status = statusFilter;
-  if (brandFilter && brandFilter !== 'all') filters.brand_cd = brandFilter;
+  if (brandFilter && brandFilter !== 'all') filters.brand = brandFilter;
   const periodRange = getPeriodRange(periodFilter);
   if (periodRange.date_from) filters.date_from = periodRange.date_from;
 
@@ -364,7 +364,7 @@ export default function CampaignList() {
 
   // Extract unique brand list for filter dropdown
   const brandOptions = useMemo(() => {
-    const brands = [...new Set(campaigns.map((c) => c.brand_cd).filter(Boolean))];
+    const brands = [...new Set(campaigns.map((c) => c.brand || c.brand_cd).filter(Boolean))];
     return brands.sort();
   }, [campaigns]);
 
@@ -374,7 +374,7 @@ export default function CampaignList() {
     const q = searchQuery.trim().toLowerCase();
     return campaigns.filter((c) =>
       (c.campaign_name || '').toLowerCase().includes(q) ||
-      (c.brand_cd || '').toLowerCase().includes(q) ||
+      (c.brand || c.brand_cd || '').toLowerCase().includes(q) ||
       (c.product_name || '').toLowerCase().includes(q)
     );
   }, [campaigns, searchQuery]);

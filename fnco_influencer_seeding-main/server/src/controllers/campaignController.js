@@ -19,11 +19,11 @@ import { softDeleteCampaign } from '../sql/campaign/deleteQuery.js';
 // 캠페인 목록 조회
 export const getCampaigns = async (req, res) => {
     try {
-        const { status, brand_cd, country } = req.query;
+        const { status, brand_cd, brand, country } = req.query;
         const filters = {};
 
         if (status) filters.status = status;
-        if (brand_cd) filters.brand_cd = brand_cd;
+        if (brand_cd || brand) filters.brand = brand_cd || brand;
         if (country) filters.country = country;
 
         // Team isolation: if req.teamCode is set, filter by team
@@ -94,7 +94,8 @@ export const getCampaignHub = async (req, res) => {
             data: {
                 campaign_id: row.campaign_id,
                 campaign_name: row.campaign_name,
-                brand_cd: row.brand_cd,
+                brand: row.brand,
+                brand_cd: row.brand,
                 category: row.category,
                 subcategory: row.subcategory,
                 product_name: row.product_name,
@@ -142,7 +143,7 @@ export const createCampaign = async (req, res) => {
 
         const {
             campaign_name,
-            brand_cd,
+            brand_cd, brand,
             category,
             subcategory,
             product_name,
@@ -169,7 +170,7 @@ export const createCampaign = async (req, res) => {
         const sqlSet = insertCampaign({
             campaign_id,
             campaign_name,
-            brand_cd,
+            brand: brand || brand_cd,
             category,
             subcategory,
             product_name,

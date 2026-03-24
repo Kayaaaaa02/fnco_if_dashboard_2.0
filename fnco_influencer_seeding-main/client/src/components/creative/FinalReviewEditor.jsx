@@ -664,9 +664,9 @@ export default function FinalReviewEditor({ creative, campaign, onBack, onSave, 
           border: '1px solid #334155',
         }}>
           {/* Thumbnail */}
-          {(savedImages[1]?.[0] || PLACEHOLDER_IMAGES[0]) && (
+          {(originalSavedImages[1]?.[0] || PLACEHOLDER_IMAGES[0]) && (
             <img
-              src={savedImages[1]?.[0] || PLACEHOLDER_IMAGES[0]}
+              src={originalSavedImages[1]?.[0] || PLACEHOLDER_IMAGES[0]}
               alt="video-thumbnail"
               style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.5 }}
             />

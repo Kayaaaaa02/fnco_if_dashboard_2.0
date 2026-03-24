@@ -35,6 +35,7 @@ import {
   AlertTriangle,
   Languages,
   Gem,
+  Calendar,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { tokens } from '@/styles/designTokens.js';
@@ -216,7 +217,7 @@ function LoadingSkeleton() {
 
 /* ── 심층 분석 결과 팝업 ── */
 
-function DeepAnalysisDialog({ open, onOpenChange, influencer, analysisData }) {
+function DeepAnalysisDialog({ open, onOpenChange, influencer, analysisData, analyzedAt }) {
   if (!influencer || !analysisData) return null;
 
   const overview = analysisData.overview || {};
@@ -266,6 +267,12 @@ function DeepAnalysisDialog({ open, onOpenChange, influencer, analysisData }) {
               {influencer.name} 심층 분석
               <PlatformBadge platform={influencer.platform} />
             </DialogTitle>
+            {analyzedAt && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 6, fontSize: 12, color: tokens.color.textSubtle }}>
+                <Calendar style={{ width: 13, height: 13 }} />
+                <span>분석일: {new Date(analyzedAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+              </div>
+            )}
           </DialogHeader>
         </div>
 
@@ -890,7 +897,7 @@ export default function InfluencerPool() {
           const analysisResult = data?.results?.[0]?.analysis || data?.analysis || data;
           setAnalyzedResults((prev) => {
             const next = new Map(prev);
-            next.set(profileId, { influencer, analysis: analysisResult });
+            next.set(profileId, { influencer, analysis: analysisResult, analyzedAt: new Date().toISOString() });
             return next;
           });
         },
@@ -1196,6 +1203,7 @@ export default function InfluencerPool() {
         onOpenChange={setAnalysisDialogOpen}
         influencer={selectedAnalysis?.influencer}
         analysisData={selectedAnalysis?.analysis}
+        analyzedAt={selectedAnalysis?.analyzedAt || selectedAnalysis?.influencer?.deepAnalyzedAt}
       />
     </div>
   );

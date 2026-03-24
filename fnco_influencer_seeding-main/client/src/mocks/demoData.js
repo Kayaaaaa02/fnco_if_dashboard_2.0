@@ -776,6 +776,23 @@ export function installDemoFetchInterceptor() {
     const parsed = new URL(url, window.location.origin);
     const pathname = parsed.pathname;
 
+    // 실제 서버로 패스스루할 API 경로들
+    if (
+        // AI 이미지/영상/나레이션 생성
+        pathname.startsWith('/api/ai-image/') ||
+        pathname === '/api/v2/tts/generate' ||
+        pathname === '/api/v2/tts/actors' ||
+        pathname.startsWith('/api/v2/video/') ||
+        // 캠페인 CRUD + 하위 리소스 (크리에이티브, PDA, 전략, 캘린더 등)
+        pathname.startsWith('/api/v2/campaigns') ||
+        // 마스터 PDA
+        pathname.startsWith('/api/v2/master-pda') ||
+        // 브랜드 DNA
+        pathname.startsWith('/api/v2/brand-dna')
+    ) {
+      return originalFetch(input, init);
+    }
+
     // POST인데 실질적으로 query인 케이스 (video analysis statuses polling)
     if (method === 'POST' && pathname === '/api/contents/videoAnalysis/statuses') {
       await delay(200);
@@ -816,20 +833,6 @@ export function installDemoFetchInterceptor() {
       await delay(250);
       const data = resolveByURL(pathname);
       return jsonResponse(structuredClone(data));
-    }
-
-    // TTS 나레이션 생성 (Typecast mock)
-    if (method === 'POST' && pathname === '/api/v2/tts/generate') {
-      await delay(2000);
-      return jsonResponse({
-        success: true,
-        data: {
-          audio_url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3',
-          duration: 3.2,
-          actor_id: 'vhyeri',
-          emotion: 'normal',
-        },
-      });
     }
 
     // POST/PUT/PATCH/DELETE → 성공 응답

@@ -20,7 +20,7 @@ export const insert_plan_ai_image_query = (param) => {
 
     return {
         insertQuery: `
-            INSERT INTO fnco_influencer.dw_plan_ai_image
+            INSERT INTO fnco_influencer.dw_plan_ai_image_v2
                 (plan_doc_id, step, img_url, is_selected, created_by)
             VALUES ($1, $2, $3, TRUE, $4)
         `,

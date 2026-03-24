@@ -31,6 +31,7 @@ import ugcFlywheelRoutes from './routes/ugcFlywheel.js';
 import masterPdaRoutes from './routes/masterPda.js';
 import brandDnaRoutes from './routes/brandDna.js';
 import typecastRoutes from './routes/typecast.js';
+import videoRoutes from './routes/video.js';
 import auditLog from './middleware/auditLog.js';
 import teamIsolation from './middleware/teamIsolation.js';
 import { pool, testConnection } from './config/database.js';
@@ -185,6 +186,7 @@ app.use('/api/v2/templates', templateRoutes);
 app.use('/api/v2/master-pda', masterPdaRoutes);
 app.use('/api/v2/brand-dna', brandDnaRoutes);
 app.use('/api/v2/tts', typecastRoutes);
+app.use('/api/v2/video', videoRoutes);
 
 app.get('/api/images/:filename', (req, res) => {
     const filename = req.params.filename;
