@@ -16,6 +16,18 @@ export function useGenerateVideo() {
 }
 
 /**
+ * 시나리오 한글 → Gemini 영어 영상 프롬프트 변환
+ * mutate({ section, visual, camera_preset? })
+ * returns { prompt }
+ */
+export function useGenerateVideoPrompt() {
+  return useMutation({
+    mutationFn: ({ section, visual, camera_preset }) =>
+      api.post('/video/generate-video-prompt', { section, visual, camera_preset }),
+  });
+}
+
+/**
  * 단일 STEP I2V 생성
  * mutate({ image_url, prompt, step, plan_doc_id?, duration? })
  * returns { video_url, step, task_id, filename }

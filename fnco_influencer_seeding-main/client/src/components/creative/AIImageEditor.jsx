@@ -3,7 +3,7 @@ import { Sparkles, SkipForward, ArrowLeft, ArrowRight, Upload, RefreshCw, Save, 
 import { tokens } from '@/styles/designTokens.js';
 import { useGenerateNarration } from '@/hooks/useTypecast.js';
 import { useGeneratePrompt, useGenerateImages, useSaveImage, useAIImages } from '@/hooks/useAIImage.js';
-import { useGenerateVideo, useGenerateStep, useMergeVideo, useVideoStatus } from '@/hooks/useVideo.js';
+import { useGenerateVideo, useGenerateVideoPrompt, useGenerateStep, useMergeVideo, useVideoStatus } from '@/hooks/useVideo.js';
 
 const ACCENT = '#7c3aed';
 const ACCENT_BG = '#f5f3ff';
@@ -24,6 +24,38 @@ const STYLE_OPTIONS = [
   { value: '리얼/노필터', desc: '꾸밈없는 일상 배경의 자연스럽고 솔직한 스타일' },
   { value: '미니멀', desc: '깔끔한 화이트/그레이 배경의 미니멀한 스타일' },
 ];
+
+/* ── 뷰티 I2V 모션 프롬프트 빌더 (beauty_video/prompt_builder.py + presets.py 참조) ── */
+const BEAUTY_CAMERA_MOVES = {
+  hook:         'handheld selfie angle, natural micro-movements',
+  middle:       'handheld beauty tutorial angle',
+  highlight:    'steady frame, natural lighting',
+  cta:          'product-focused composition, clean framing',
+  apply:        'handheld beauty tutorial angle',
+  proof:        'steady frame, natural ambient lighting',
+  unboxing:     'close-up, detail-focused framing',
+  swatch:       'close-up, skin texture visible',
+};
+
+const BEAUTY_NEGATIVE_PROMPT = 'blurry, distorted face, deformed hands, extra fingers, unnatural movement, jittery, low quality, watermark, text overlay, morphing artifacts, flickering, temporal inconsistency, face morphing, identity change, sudden jump cuts';
+
+function buildI2vMotionPrompt(section, visualAction) {
+  const sectionLower = (section || '').toLowerCase();
+  const cameraMove = BEAUTY_CAMERA_MOVES[sectionLower] || BEAUTY_CAMERA_MOVES.middle;
+
+  const visual = (visualAction || '').trim();
+  const parts = [];
+
+  if (visual) {
+    // 시나리오의 visual/action을 그대로 반영
+    parts.push(visual);
+  }
+
+  parts.push(`Camera: ${cameraMove}.`);
+  parts.push('Realistic, not exaggerated. 9:16 vertical.');
+
+  return parts.join(' ');
+}
 
 /* ── 시나리오 데이터: production_guide가 있으면 활용, 없으면 fallback ── */
 function buildStepScenario(creative) {
@@ -302,9 +334,14 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
   const generatedImages = generatedImagesByStep[activeStep] || [];
   const setGeneratedImages = (imgs) => setGeneratedImagesByStep((prev) => ({ ...prev, [activeStep]: imgs }));
   // 영상 생성 관련 상태: 'idle' | 'generating' | 'polling' | 'done'
-  const [videoState, setVideoState] = useState(initialView === 'video' ? 'done' : 'idle');
+  const [videoState, setVideoState] = useState(
+    initialView === 'video' ? 'done'
+    : guide.video_generated ? 'done'
+    : guide.step_videos && Object.keys(guide.step_videos).length > 0 ? 'ready'
+    : 'idle'
+  );
   const [showVideoPreview, setShowVideoPreview] = useState(false);
-  const [videoUrl, setVideoUrl] = useState(null);
+  const [videoUrl, setVideoUrl] = useState(guide.video_url || null);
   const [videoError, setVideoError] = useState(null);
   const [klingTaskId, setKlingTaskId] = useState(null);
   // 나레이션 설정
@@ -365,7 +402,15 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
   }, [dbImages]);
 
   // STEP별 영상 관리: { [stepKey]: { url, status: 'idle'|'generating'|'done'|'approved', error? } }
-  const [videoByStep, setVideoByStep] = useState({});
+  const [videoByStep, setVideoByStep] = useState(() => {
+    // production_guide에서 저장된 STEP 영상 복원
+    const sv = guide.step_videos || {};
+    const init = {};
+    Object.entries(sv).forEach(([step, url]) => {
+      if (url) init[Number(step)] = { status: 'approved', url, error: null };
+    });
+    return init;
+  });
   // 최종 합성 상태
   const [mergeState, setMergeState] = useState('idle'); // idle | merging | done
 
@@ -374,6 +419,7 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
   const imageMutation = useGenerateImages();
   const saveImageMutation = useSaveImage();
   const videoMutation = useGenerateVideo();
+  const videoPromptMutation = useGenerateVideoPrompt();
   const stepVideoMutation = useGenerateStep();
   const mergeMutation = useMergeVideo();
 
@@ -578,8 +624,8 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
     handleGeneratePrompt();
   };
 
-  // STEP별 개별 I2V 생성
-  const handleGenerateStepVideo = (stepKey) => {
+  // STEP별 개별 I2V 생성 (Gemini 프롬프트 변환 포함)
+  const handleGenerateStepVideo = async (stepKey) => {
     const imgUrl = (savedImagesByStep[stepKey] || [])[0]
       || (generatedImagesByStep[stepKey] || [])[0];
     if (!imgUrl) {
@@ -587,12 +633,23 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
       return;
     }
     const row = scenarioRows[stepKey - 1] || {};
-    // Kling API는 5초 또는 10초만 허용
     const duration = 5;
-    // 시나리오 기반 영상 모션 프롬프트
-    const motionPrompt = `Smooth cinematic motion for a beauty product short-form video. Scene: ${row.visual || ''}. The camera moves naturally with subtle zoom. Photorealistic, high quality, 9:16 vertical.`;
+    const cameraPreset = BEAUTY_CAMERA_MOVES[(row.section || '').toLowerCase()] || BEAUTY_CAMERA_MOVES.middle;
 
     setVideoByStep((prev) => ({ ...prev, [stepKey]: { status: 'generating', url: null, error: null } }));
+
+    // Gemini 프롬프트 변환
+    let motionPrompt;
+    try {
+      const promptData = await videoPromptMutation.mutateAsync({
+        section: row.section || `STEP ${stepKey}`,
+        visual: row.visual || '',
+        camera_preset: cameraPreset,
+      });
+      motionPrompt = promptData.prompt;
+    } catch {
+      motionPrompt = buildI2vMotionPrompt(row.section, row.visual);
+    }
 
     stepVideoMutation.mutate(
       {
@@ -628,14 +685,32 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
     setVideoError(null);
     setVideoState('generating');
 
+    // 로컬에서 결과 수집 (state는 비동기라 즉시 참조 불가)
+    const results = {};
+
     for (const s of stepsWithImages) {
       const imgUrl = (savedImagesByStep[s.key] || [])[0] || (generatedImagesByStep[s.key] || [])[0];
       const row = scenarioRows[s.key - 1] || {};
-      const motionPrompt = `Smooth cinematic motion for a beauty product short-form video. Scene: ${row.visual || ''}. The camera moves naturally with subtle zoom. Photorealistic, high quality, 9:16 vertical.`;
+      const cameraPreset = BEAUTY_CAMERA_MOVES[(row.section || '').toLowerCase()] || BEAUTY_CAMERA_MOVES.middle;
 
       setVideoByStep((prev) => ({ ...prev, [s.key]: { status: 'generating', url: null, error: null } }));
 
-      // 최대 2회 시도 (1회 실패 시 30초 대기 후 재시도)
+      // Phase 0: Gemini로 한글 시나리오 → 영어 I2V 프롬프트 변환
+      let motionPrompt;
+      try {
+        const promptData = await videoPromptMutation.mutateAsync({
+          section: row.section || `STEP ${s.key}`,
+          visual: row.visual || '',
+          camera_preset: cameraPreset,
+        });
+        motionPrompt = promptData.prompt;
+        console.log(`[Video] STEP ${s.key} 프롬프트:`, motionPrompt?.slice(0, 80));
+      } catch (promptErr) {
+        // Gemini 실패 시 로컬 빌더 폴백
+        console.warn(`[Video] STEP ${s.key} Gemini 프롬프트 실패, 폴백 사용:`, promptErr.message);
+        motionPrompt = buildI2vMotionPrompt(row.section, row.visual);
+      }
+
       let lastErr = null;
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
@@ -651,6 +726,7 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
             duration: 5,
           });
           setVideoByStep((prev) => ({ ...prev, [s.key]: { status: 'done', url: data.video_url, error: null } }));
+          results[s.key] = data.video_url;
           lastErr = null;
           break;
         } catch (err) {
@@ -662,6 +738,22 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
       }
     }
     videoQueueRef.current = false;
+
+    // 자동 저장 (로컬 results 사용)
+    if (onSave && Object.keys(results).length > 0) {
+      onSave({
+        ai_editor_data: {
+          saved_images: savedImagesByStep,
+          selected_style: selectedStyle,
+          prompts: promptByStep,
+          step_videos: results,
+          narrations: Object.fromEntries(STEPS.map((s) => [s.key, getNarration(s.key)])),
+          emotions: Object.fromEntries(STEPS.map((s) => [s.key, getEmotion(s.key)])),
+          voice: { gender: voiceGender, tone: voiceTone },
+          audio_urls: audioByStep,
+        },
+      }).catch(() => {});
+    }
   };
 
   // STEP 승인/해제
@@ -697,6 +789,27 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
           setVideoUrl(data.video_url);
           setVideoState('done');
           setMergeState('done');
+          // DB에 영상 데이터 저장
+          if (onSave) {
+            const stepVideos = {};
+            STEPS.forEach((s) => {
+              if (videoByStep[s.key]?.url) stepVideos[s.key] = videoByStep[s.key].url;
+            });
+            onSave({
+              ai_editor_data: {
+                saved_images: savedImagesByStep,
+                selected_style: selectedStyle,
+                prompts: promptByStep,
+                video_generated: true,
+                video_url: data.video_url,
+                step_videos: stepVideos,
+                narrations: Object.fromEntries(STEPS.map((s) => [s.key, getNarration(s.key)])),
+                emotions: Object.fromEntries(STEPS.map((s) => [s.key, getEmotion(s.key)])),
+                voice: { gender: voiceGender, tone: voiceTone },
+                audio_urls: audioByStep,
+              },
+            }).catch(() => {});
+          }
         },
         onError: (err) => {
           setVideoError(`최종 합성 실패: ${err.message}`);
@@ -1275,8 +1388,8 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
             </button>
           ) : (
             <>
-              {/* 전체 승인 → 최종 합성 */}
-              {allStepsApproved && videoState !== 'done' && (
+              {/* 전체 승인 → 최종 합성 (ready/done 모두 표시) */}
+              {allStepsApproved && (
                 <button
                   onClick={handleMergeAll}
                   disabled={mergeState === 'merging'}
@@ -1291,7 +1404,7 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
                   {mergeState === 'merging' ? (
                     <><Loader2 style={{ width: 16, height: 16, animation: 'spin 1.5s linear infinite' }} /> 최종 합성 중...</>
                   ) : (
-                    <><Sparkles style={{ width: 16, height: 16 }} /> 나레이션 + 영상 최종 합성</>
+                    <><Sparkles style={{ width: 16, height: 16 }} /> {videoUrl ? '나레이션 + 영상 다시 합성' : '나레이션 + 영상 최종 합성'}</>
                   )}
                 </button>
               )}

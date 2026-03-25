@@ -17,6 +17,9 @@ const KLING_ACCESS_KEY = process.env.KLING_API_ACCESS_KEY;
 const KLING_SECRET_KEY = process.env.KLING_API_SECRET_KEY;
 const KLING_BASE = 'https://api.klingai.com';
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_BASE = 'https://generativelanguage.googleapis.com/v1beta';
+
 /* ── Kling JWT 토큰 ── */
 function generateKlingToken() {
     if (!KLING_ACCESS_KEY || !KLING_SECRET_KEY) return null;
@@ -88,7 +91,7 @@ async function klingImageToVideo(headers, imageBase64, prompt, duration) {
         cfg_scale: 0.5,
     };
     if (prompt) body.prompt = prompt;
-    body.negative_prompt = 'blur, distortion, low quality, watermark, text overlay';
+    body.negative_prompt = 'blurry, distorted face, deformed hands, extra fingers, unnatural movement, jittery, low quality, watermark, text overlay, morphing artifacts, flickering, temporal inconsistency, face morphing, identity change, sudden jump cuts';
 
     let createRes;
     try {
@@ -379,6 +382,72 @@ export const getVideoStatus = async (req, res) => {
 };
 
 /* ══════════════════════════════════════════════════
+ * POST /api/v2/video/generate-video-prompt
+ * 시나리오 한글 → Gemini → 영어 영상 프롬프트 변환
+ * body: { section, visual, camera_preset? }
+ * ══════════════════════════════════════════════════ */
+export const generateVideoPrompt = async (req, res) => {
+    try {
+        if (!GEMINI_API_KEY) {
+            return res.status(500).json({ error: 'GEMINI_API_KEY가 설정되지 않았습니다.' });
+        }
+
+        const { section, visual, camera_preset } = req.body ?? {};
+        if (!visual || typeof visual !== 'string' || !visual.trim()) {
+            return res.status(400).json({ error: 'visual(시나리오 Visual/Action)이 필요합니다.' });
+        }
+
+        const sectionLabel = section || 'Middle';
+        const camera = camera_preset || '';
+
+        const systemPrompt = `You are an expert at writing Image-to-Video (I2V) motion prompts for KlingAI.
+Your job: convert a Korean beauty video scenario description into a concise English I2V motion prompt.
+
+Rules:
+1. Output ONLY the English prompt, no explanation.
+2. Describe the motion/action of the person and camera naturally — do NOT exaggerate movements.
+3. Keep it realistic and grounded in the scene description.
+4. Do NOT add slow-motion, dramatic zooms, or cinematic effects unless the scenario explicitly says so.
+5. Include the camera angle/movement if provided.
+6. Keep the prompt under 150 words.
+7. The prompt should work as an I2V motion instruction for an already-generated start frame image.`;
+
+        const userMessage = `Section: ${sectionLabel}
+Scenario (Korean): ${visual.trim()}
+${camera ? `Camera preset: ${camera}` : ''}
+
+Convert this into an English I2V motion prompt:`;
+
+        console.log(`[Video Prompt] Gemini 호출 — section: ${sectionLabel}, visual: ${visual.slice(0, 50)}...`);
+
+        const response = await axios.post(
+            `${GEMINI_BASE}/models/gemini-3.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + userMessage }] }],
+                generationConfig: { temperature: 0.7, maxOutputTokens: 512 },
+            },
+            { headers: { 'Content-Type': 'application/json' }, timeout: 30000 }
+        );
+
+        const generatedText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const prompt = generatedText.trim().replace(/^["']|["']$/g, '');
+
+        if (!prompt) {
+            return res.status(502).json({ error: 'Gemini에서 프롬프트를 생성하지 못했습니다.' });
+        }
+
+        console.log(`[Video Prompt] 완료 — ${prompt.slice(0, 80)}...`);
+        return res.json({ success: true, data: { prompt } });
+    } catch (error) {
+        console.error('[Video Prompt]', error.response?.data || error.message);
+        return res.status(500).json({
+            error: '영상 프롬프트 생성 중 오류',
+            details: error.response?.data?.error?.message || error.message,
+        });
+    }
+};
+
+/* ══════════════════════════════════════════════════
  * POST /api/v2/video/generate-step
  * 단일 STEP I2V 생성 (이미지 + 시나리오 프롬프트 → 영상)
  * body: { image_url, prompt, step, plan_doc_id?, duration? }
@@ -494,11 +563,25 @@ export const mergeVideo = async (req, res) => {
             const concatPath = path.join(tempDir, `concat_${planId}.mp4`);
             tempFiles.push(concatPath);
 
-            await execFileAsync('ffmpeg', [
-                '-f', 'concat', '-safe', '0',
-                '-i', listPath.replace(/\\/g, '/'),
-                '-c', 'copy', '-y', concatPath.replace(/\\/g, '/'),
-            ], { timeout: 300000 });
+            console.log(`[ffmpeg] concat filelist:\n${fs.readFileSync(listPath, 'utf8')}`);
+            try {
+                // 먼저 stream copy로 시도 (빠름)
+                await execFileAsync('ffmpeg', [
+                    '-f', 'concat', '-safe', '0',
+                    '-i', listPath.replace(/\\/g, '/'),
+                    '-c', 'copy', '-y', concatPath.replace(/\\/g, '/'),
+                ], { timeout: 300000 });
+            } catch (copyErr) {
+                // copy 실패 시 재인코딩으로 폴백
+                console.warn('[ffmpeg] concat copy 실패, 재인코딩 시도:', copyErr.message?.slice(0, 100));
+                await execFileAsync('ffmpeg', [
+                    '-f', 'concat', '-safe', '0',
+                    '-i', listPath.replace(/\\/g, '/'),
+                    '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+                    '-c:a', 'aac', '-b:a', '128k',
+                    '-y', concatPath.replace(/\\/g, '/'),
+                ], { timeout: 600000 });
+            }
 
             if (audioPaths.length > 0) {
                 // 오디오도 concat
@@ -544,8 +627,8 @@ export const mergeVideo = async (req, res) => {
         for (const f of tempFiles) {
             try { if (fs.existsSync(f)) fs.unlinkSync(f); } catch { /* ignore */ }
         }
-        console.error('[Video Merge]', error.message);
-        return res.status(500).json({ error: '영상 합성 중 오류', details: error.message });
+        console.error('[Video Merge]', error.message, error.stderr?.slice?.(0, 300) || '');
+        return res.status(500).json({ error: '영상 합성 중 오류', details: error.message?.slice(0, 300) });
     }
 };
 

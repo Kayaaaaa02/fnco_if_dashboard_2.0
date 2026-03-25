@@ -1,10 +1,13 @@
 import { Router } from 'express';
-import { generateVideo, generateStep, mergeVideo, getVideoStatus, serveVideo } from '../controllers/videoController.js';
+import { generateVideo, generateVideoPrompt, generateStep, mergeVideo, getVideoStatus, serveVideo } from '../controllers/videoController.js';
 
 const router = Router();
 
 // Kling AI 영상 생성 — 전체 (레거시)
 router.post('/generate', generateVideo);
+
+// 시나리오 한글 → 영어 영상 프롬프트 변환 (Gemini)
+router.post('/generate-video-prompt', generateVideoPrompt);
 
 // 단일 STEP I2V 생성
 router.post('/generate-step', generateStep);
