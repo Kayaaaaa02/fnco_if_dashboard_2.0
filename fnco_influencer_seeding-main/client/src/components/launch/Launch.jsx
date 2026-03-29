@@ -21,7 +21,7 @@ const STAGE_CONFIG = [
     label: '업로드 스케줄 생성',
     description: '인플루언서별 콘텐츠 업로드 일정을 자동 생성',
     icon: CalendarPlus,
-    buttonLabel: '업데이트',
+    buttonLabel: '스케쥴 업데이트',
     color: '#6366f1',
     softBg: '#eef2ff',
   },
@@ -100,7 +100,7 @@ function formatDate(dateStr) {
 function formatTime(dateStr) {
   if (!dateStr) return '';
   const d = new Date(dateStr);
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+  return `${String(d.getHours()).padStart(2, '0')}시`;
 }
 
 export default function Launch() {
@@ -117,6 +117,7 @@ export default function Launch() {
   const [approvalOpen, setApprovalOpen] = useState(false);
   const [activeStage, setActiveStage] = useState('schedule'); // which detail view
   const [uploadChecks, setUploadChecks] = useState({}); // { schedule_id: true }
+  const [publishedDates, setPublishedDates] = useState({}); // { schedule_id: ISO date string }
   const [metaConnected, setMetaConnected] = useState(false);
   const [scheduleUpdatedAt, setScheduleUpdatedAt] = useState(null); // 업데이트 클릭 시점
 
@@ -245,6 +246,20 @@ export default function Launch() {
       setScheduleUpdatedAt(new Date().toISOString());
       createSchedule.mutate({ campaignId });
     } else if (stageKey === 'confirm') {
+      // 오늘 날짜 기준으로 업로드 예정일자가 지난 항목 자동 체크 + 업로드 일자 기록
+      const now = new Date();
+      const nowISO = now.toISOString();
+      const nextChecks = { ...uploadChecks };
+      const nextDates = { ...publishedDates };
+      items.forEach((item) => {
+        const scheduledDate = item.scheduled_at ? new Date(item.scheduled_at) : null;
+        if (scheduledDate && scheduledDate <= now && !nextDates[item.schedule_id]) {
+          nextChecks[item.schedule_id] = true;
+          nextDates[item.schedule_id] = nowISO;
+        }
+      });
+      setUploadChecks(nextChecks);
+      setPublishedDates(nextDates);
       approveLaunch.mutate(campaignId);
     } else if (stageKey === 'ad') {
       setMetaConnected(true);
@@ -507,14 +522,12 @@ export default function Launch() {
                             {isCreativeBased && (
                               <th style={{ padding: '8px 14px', textAlign: 'left', fontWeight: 700, color: '#64748b', fontSize: 10, borderBottom: `1px solid ${tokens.color.border}` }}>페르소나</th>
                             )}
-                            {isCreativeBased && (
-                              <th style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: 10, borderBottom: `1px solid ${tokens.color.border}` }}>퍼널</th>
-                            )}
                             {!isCreativeBased && (
                               <th style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: 10, borderBottom: `1px solid ${tokens.color.border}` }}>업로드 일자</th>
                             )}
                             <th style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: 10, borderBottom: `1px solid ${tokens.color.border}` }}>상태</th>
                             <th style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: 10, borderBottom: `1px solid ${tokens.color.border}` }}>업로드 예정일자</th>
+                            <th style={{ padding: '8px 14px', textAlign: 'center', fontWeight: 700, color: '#64748b', fontSize: 10, borderBottom: `1px solid ${tokens.color.border}` }}>업로드 일</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -522,7 +535,6 @@ export default function Launch() {
                             const st = item.status;
                             const stColor = st === 'published' ? '#10b981' : st === 'approved' ? '#f59e0b' : st === 'failed' ? '#ef4444' : st === 'human_edited' ? '#6366f1' : st === 'ai_generated' ? '#8b5cf6' : '#3b82f6';
                             const stLabel = st === 'published' ? '발행완료' : st === 'approved' ? '승인' : st === 'failed' ? '실패' : st === 'human_edited' ? '편집완료' : st === 'ai_generated' ? 'AI생성' : '예약';
-                            const funnelColor = item.funnel === 'TOFU' ? '#3b82f6' : item.funnel === 'MOFU' ? '#f59e0b' : item.funnel === 'BOFU' ? '#10b981' : '#94a3b8';
                             const infName = item.influencer_name || item.profile_id || '자체 채널';
                             const hasProfile = !!item.profile_id;
                             return (
@@ -547,6 +559,30 @@ export default function Launch() {
                                     {hasProfile && (
                                       <ExternalLink style={{ width: 10, height: 10, color: '#94a3b8', flexShrink: 0 }} />
                                     )}
+                                    {(() => {
+                                      const channelUrl = item.channel_url
+                                        || (item.platform === 'instagram' && item.profile_id ? `https://instagram.com/${item.profile_id}` : null)
+                                        || (item.platform === 'youtube' && item.profile_id ? `https://youtube.com/@${item.profile_id}` : null)
+                                        || (item.platform === 'tiktok' && item.profile_id ? `https://tiktok.com/@${item.profile_id}` : null)
+                                        || (hasProfile ? `https://instagram.com/${item.profile_id}` : null);
+                                      return channelUrl ? (
+                                        <a
+                                          href={channelUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          onClick={(e) => e.stopPropagation()}
+                                          style={{
+                                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                                            fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4,
+                                            background: '#ede9fe', color: '#6366f1', textDecoration: 'none',
+                                            flexShrink: 0,
+                                          }}
+                                        >
+                                          <ExternalLink style={{ width: 8, height: 8 }} />
+                                          채널
+                                        </a>
+                                      ) : null;
+                                    })()}
                                   </div>
                                 </td>
                                 <td style={{ padding: '10px 14px' }}>
@@ -560,15 +596,6 @@ export default function Launch() {
                                 {isCreativeBased && (
                                   <td style={{ padding: '10px 14px' }}>
                                     <span style={{ fontSize: 11, color: '#475569' }}>{item.persona_name || '-'}</span>
-                                  </td>
-                                )}
-                                {isCreativeBased && (
-                                  <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                                    {item.funnel && (
-                                      <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: funnelColor + '15', color: funnelColor }}>
-                                        {item.funnel}
-                                      </span>
-                                    )}
                                   </td>
                                 )}
                                 {!isCreativeBased && (
@@ -589,6 +616,38 @@ export default function Launch() {
                                   <span style={{ fontSize: 10, color: '#94a3b8', marginLeft: 4 }}>
                                     {formatTime(item.updated_at || item.created_at || scheduleUpdatedAt)}
                                   </span>
+                                </td>
+                                <td style={{ padding: '10px 14px', textAlign: 'center' }}>
+                                  {(item.published_at || publishedDates[item.schedule_id]) ? (
+                                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                                      <div>
+                                        <span style={{ fontWeight: 600, color: '#10b981', fontSize: 11 }}>
+                                          {formatDate(item.published_at || publishedDates[item.schedule_id])}
+                                        </span>
+                                        <span style={{ fontSize: 10, color: '#94a3b8', marginLeft: 4 }}>
+                                          {formatTime(item.published_at || publishedDates[item.schedule_id])}
+                                        </span>
+                                      </div>
+                                      {item.published_url && (
+                                        <a
+                                          href={item.published_url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          onClick={(e) => e.stopPropagation()}
+                                          style={{
+                                            display: 'inline-flex', alignItems: 'center', gap: 3,
+                                            fontSize: 9, fontWeight: 600, padding: '2px 6px', borderRadius: 4,
+                                            background: '#ede9fe', color: '#6366f1', textDecoration: 'none',
+                                          }}
+                                        >
+                                          <ExternalLink style={{ width: 8, height: 8 }} />
+                                          바로가기
+                                        </a>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span style={{ fontSize: 11, color: '#cbd5e1' }}>—</span>
+                                  )}
                                 </td>
                               </tr>
                             );
@@ -669,110 +728,7 @@ export default function Launch() {
         </div>
       )}
 
-      {/* ══════ 업로드 확인 (Stage 2 Detail) ══════ */}
-      {activeStage === 'confirm' && (
-        <div style={{
-          borderRadius: 14, border: `1px solid ${tokens.color.border}`,
-          background: tokens.color.surface, boxShadow: tokens.shadow.card, overflow: 'hidden',
-        }}>
-          <div style={{
-            padding: '14px 22px', borderBottom: `1px solid ${tokens.color.border}`,
-            background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Upload style={{ width: 16, height: 16, color: '#d97706' }} />
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: '#92400e', margin: 0 }}>인플루언서 업로드 확인</h3>
-              <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#fde68a', color: '#92400e' }}>
-                {Object.values(uploadChecks).filter(Boolean).length}/{items.length} 확인
-              </span>
-            </div>
-            <Button
-              variant="outline" size="sm"
-              onClick={() => {
-                const allChecked = items.every((i) => uploadChecks[i.schedule_id]);
-                const next = {};
-                items.forEach((i) => { next[i.schedule_id] = !allChecked; });
-                setUploadChecks(next);
-              }}
-              style={{ fontSize: 11, height: 30, borderRadius: 8 }}
-            >
-              <CheckCheck className="size-3.5" />
-              전체 {items.every((i) => uploadChecks[i.schedule_id]) ? '해제' : '확인'}
-            </Button>
-          </div>
-
-          {items.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
-              <p style={{ fontSize: 14, fontWeight: 600, margin: 0 }}>스케줄이 없습니다</p>
-            </div>
-          ) : (
-            <div style={{ padding: '4px 0' }}>
-              {items.map((item) => {
-                const checked = !!uploadChecks[item.schedule_id];
-                const isPublished = item.status === 'published';
-                const pCfg = PLATFORM_COLORS[item.platform] || { icon: '🌐', color: '#6b7280', bg: '#f3f4f6' };
-                return (
-                  <div
-                    key={item.schedule_id}
-                    onClick={() => toggleUploadCheck(item.schedule_id)}
-                    style={{
-                      display: 'flex', alignItems: 'center', gap: 14,
-                      padding: '12px 22px', cursor: 'pointer',
-                      borderBottom: `1px solid ${tokens.color.border}`,
-                      background: checked ? '#f0fdf4' : isPublished ? '#f0fdf420' : 'transparent',
-                      transition: 'background .15s',
-                    }}
-                  >
-                    <Checkbox
-                      checked={checked || isPublished}
-                      onCheckedChange={() => toggleUploadCheck(item.schedule_id)}
-                      disabled={isPublished}
-                    />
-                    <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <User style={{ width: 14, height: 14, color: '#64748b' }} />
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{item.influencer_name || item.profile_id || '자체 채널'}</span>
-                        <span style={{ fontSize: 12 }}>{pCfg.icon}</span>
-                        <span style={{ fontSize: 10, fontWeight: 600, color: pCfg.color }}>{item.platform}</span>
-                      </div>
-                      <p style={{ fontSize: 11, color: '#64748b', margin: '2px 0 0' }}>
-                        {item.concept_name || '컨셉'} · {item.content_type || item.platform}
-                      </p>
-                    </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: '#1e293b' }}>{formatDate(item.scheduled_at)}</span>
-                      <span style={{ fontSize: 10, color: '#94a3b8', marginLeft: 4 }}>{formatTime(item.scheduled_at)}</span>
-                    </div>
-                    <div style={{ flexShrink: 0 }}>
-                      {isPublished ? (
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#dcfce7', color: '#15803d' }}>업로드 완료</span>
-                      ) : checked ? (
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#dbeafe', color: '#2563eb' }}>확인됨</span>
-                      ) : (
-                        <span style={{ fontSize: 10, fontWeight: 700, padding: '2px 8px', borderRadius: 999, background: '#f1f5f9', color: '#94a3b8' }}>미확인</span>
-                      )}
-                    </div>
-                    {isPublished && item.published_url && (
-                      <a
-                        href={item.published_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{ flexShrink: 0 }}
-                      >
-                        <ExternalLink style={{ width: 14, height: 14, color: '#6366f1' }} />
-                      </a>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+      {/* 업로드 확인 (Stage 2) — 별도 상세 페이지 없음, 스케줄 표에서 관리 */}
 
       {/* ══════ 광고 집행 - META 연동 (Stage 3 Detail) ══════ */}
       {activeStage === 'ad' && (

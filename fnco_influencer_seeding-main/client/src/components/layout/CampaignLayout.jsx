@@ -94,14 +94,14 @@ export default function CampaignLayout() {
       <div
         className="scrollbar-hide"
         style={{
-          borderBottom: `1px solid ${tokens.color.border}`,
-          background: tokens.color.surface,
+          borderBottom: '1px solid #E8E8E8',
+          background: '#ffffff',
           padding: '0 32px',
           overflowX: 'auto',
           display: 'flex',
           alignItems: 'center',
-          gap: 2,
-          height: 46,
+          gap: 4,
+          height: 50,
           flexShrink: 0,
         }}
       >
@@ -113,30 +113,30 @@ export default function CampaignLayout() {
             style={({ isActive }) => ({
               display: 'flex',
               alignItems: 'center',
-              gap: 6,
-              padding: '6px 12px',
+              gap: 8,
+              padding: '7px 14px',
               borderRadius: 10,
-              fontSize: 12,
-              fontWeight: 700,
+              fontSize: 13,
+              fontWeight: isActive ? 600 : 400,
               whiteSpace: 'nowrap',
               textDecoration: 'none',
               transition: 'all .15s',
-              background: isActive ? tokens.color.primarySoft : 'transparent',
-              color: isActive ? tokens.color.primary : tokens.color.textSubtle,
+              background: isActive ? '#F5F5F5' : 'transparent',
+              color: isActive ? '#111111' : '#888888',
             })}
           >
             <span
               style={{
-                width: 22,
-                height: 22,
+                width: 24,
+                height: 24,
                 borderRadius: '50%',
-                background: tokens.color.surfaceMuted,
+                background: '#F0F0F0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: 700,
-                color: tokens.color.text,
+                color: '#111111',
               }}
             >
               {phase}

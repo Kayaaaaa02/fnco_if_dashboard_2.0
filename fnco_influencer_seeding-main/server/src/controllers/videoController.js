@@ -10,6 +10,11 @@ const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const videosDir = path.join(__dirname, '../../uploads/generated-videos');
 const tempDir = path.join(__dirname, '../../uploads/temp');
+
+// ffmpeg 경로: chocolatey 버전 우선 (System32 버전은 DLL 누락 이슈)
+const FFMPEG = fs.existsSync('C:/ProgramData/chocolatey/bin/ffmpeg.exe')
+    ? 'C:/ProgramData/chocolatey/bin/ffmpeg.exe'
+    : 'ffmpeg';
 if (!fs.existsSync(videosDir)) fs.mkdirSync(videosDir, { recursive: true });
 if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 
@@ -238,7 +243,7 @@ export const generateVideo = async (req, res) => {
             if (singleAudio) {
                 // 영상 + 나레이션 합성
                 console.log(`[ffmpeg] 단일 STEP 영상 + 나레이션 합성`);
-                await execFileAsync('ffmpeg', [
+                await execFileAsync(FFMPEG, [
                     '-i', singleVideo.replace(/\\/g, '/'),
                     '-i', singleAudio.replace(/\\/g, '/'),
                     '-map', '0:v', '-map', '1:a',
@@ -260,7 +265,7 @@ export const generateVideo = async (req, res) => {
             tempFiles.push(concatOutput);
 
             console.log(`[ffmpeg] ${videoPaths.length} clips concat 시작`);
-            await execFileAsync('ffmpeg', [
+            await execFileAsync(FFMPEG, [
                 '-f', 'concat', '-safe', '0',
                 '-i', listPath.replace(/\\/g, '/'),
                 '-c', 'copy',
@@ -278,7 +283,7 @@ export const generateVideo = async (req, res) => {
                 const concatAudio = path.join(tempDir, `concat_audio_${planId}.wav`);
                 tempFiles.push(concatAudio);
 
-                await execFileAsync('ffmpeg', [
+                await execFileAsync(FFMPEG, [
                     '-f', 'concat', '-safe', '0',
                     '-i', audioListPath.replace(/\\/g, '/'),
                     '-c', 'copy',
@@ -286,7 +291,7 @@ export const generateVideo = async (req, res) => {
                 ], { timeout: 120000 });
 
                 // 영상 + 오디오 합성
-                await execFileAsync('ffmpeg', [
+                await execFileAsync(FFMPEG, [
                     '-i', concatOutput.replace(/\\/g, '/'),
                     '-i', concatAudio.replace(/\\/g, '/'),
                     '-map', '0:v', '-map', '1:a',
@@ -491,10 +496,33 @@ export const generateStep = async (req, res) => {
     }
 };
 
+/* ── 자막 스타일별 ffmpeg drawtext 필터 생성 ── */
+function buildSubtitleFilter(subtitle, style) {
+    if (!subtitle || !subtitle.trim()) return null;
+
+    // ffmpeg drawtext 특수문자 이스케이프 (: → \:, ' → \\', \ → \\)
+    const text = subtitle.trim()
+        .replace(/\\/g, '\\\\')
+        .replace(/:/g, '\\:')
+        .replace(/'/g, "\\'")
+        .replace(/\n/g, ' ');
+
+    // 한글 폰트 경로 — drawtext 내부에서 : 이스케이프 필요
+    const fontFile = 'C\\:/Windows/Fonts/malgunbd.ttf';
+
+    if (style === 'broadcast') {
+        return `drawtext=fontfile='${fontFile}':text='${text}':fontcolor=black:fontsize=28:x=(w-text_w)/2:y=h-h/8:box=1:boxcolor=white@0.85:boxborderw=12`;
+    } else if (style === 'thumbnail') {
+        return `drawtext=fontfile='${fontFile}':text='${text}':fontcolor=white:fontsize=32:x=(w-text_w)/2:y=h-h/6:borderw=3:bordercolor=black`;
+    } else {
+        return `drawtext=fontfile='${fontFile}':text='${text}':fontcolor=white:fontsize=26:x=(w-text_w)/2:y=h-h/7:shadowcolor=black@0.8:shadowx=2:shadowy=2:borderw=2:bordercolor=black@0.5`;
+    }
+}
+
 /* ══════════════════════════════════════════════════
  * POST /api/v2/video/merge
- * 승인된 STEP 영상들 + 나레이션 → 최종 합성
- * body: { steps: [{ video_url, audio_url? }], plan_doc_id? }
+ * 승인된 STEP 영상들 + 나레이션 + 자막 → 최종 합성
+ * body: { steps: [{ video_url, audio_url?, subtitle?, subtitle_style? }], plan_doc_id? }
  * ══════════════════════════════════════════════════ */
 export const mergeVideo = async (req, res) => {
     const { steps: mergeSteps, plan_doc_id } = req.body ?? {};
@@ -506,111 +534,113 @@ export const mergeVideo = async (req, res) => {
     const tempFiles = [];
 
     try {
-        // 1) 영상 파일 수집 (URL → 로컬)
-        const videoPaths = [];
-        const audioPaths = [];
+        // ──────── 1) STEP별 개별 합성 (영상 + 나레이션 + 자막) ────────
+        const completedSteps = [];
 
-        for (const s of mergeSteps) {
+        for (let i = 0; i < mergeSteps.length; i++) {
+            const s = mergeSteps[i];
             if (!s.video_url) continue;
 
-            // 로컬 서빙 URL이면 직접 경로 추출
+            // 1-a) 영상 파일 경로
             let vPath;
             const serveMatch = s.video_url.match(/\/api\/v2\/video\/serve\/(.+)/);
             if (serveMatch) {
                 vPath = path.join(videosDir, decodeURIComponent(serveMatch[1]));
             } else {
-                vPath = path.join(tempDir, `merge_v_${planId}_${videoPaths.length}.mp4`);
+                vPath = path.join(tempDir, `merge_v_${planId}_${i}.mp4`);
                 await downloadFile(s.video_url, vPath);
                 tempFiles.push(vPath);
             }
-            if (fs.existsSync(vPath)) videoPaths.push(vPath);
+            if (!fs.existsSync(vPath)) continue;
 
-            if (s.audio_url) {
-                try {
-                    const aPath = path.join(tempDir, `merge_a_${planId}_${audioPaths.length}.wav`);
-                    await downloadFile(s.audio_url, aPath);
-                    tempFiles.push(aPath);
-                    audioPaths.push(aPath);
-                } catch { /* skip */ }
+            let currentPath = vPath;
+
+            // 1-b) 자막 오버레이
+            if (s.subtitle && s.subtitle.trim()) {
+                const subFilter = buildSubtitleFilter(s.subtitle, s.subtitle_style || 'reels');
+                if (subFilter) {
+                    const subtitledPath = path.join(tempDir, `sub_${planId}_${i}.mp4`);
+                    tempFiles.push(subtitledPath);
+                    try {
+                        await execFileAsync(FFMPEG, [
+                            '-i', currentPath.replace(/\\/g, '/'),
+                            '-vf', subFilter,
+                            '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
+                            '-c:a', 'copy',
+                            '-y', subtitledPath.replace(/\\/g, '/'),
+                        ], { timeout: 120000 });
+                        currentPath = subtitledPath;
+                        console.log(`[Merge] STEP ${i + 1} 자막 오버레이 완료`);
+                    } catch (subErr) {
+                        console.warn(`[Merge] STEP ${i + 1} 자막 실패, 원본 사용:`, subErr.message?.slice(0, 80));
+                    }
+                }
             }
+
+            // 1-c) 나레이션 합성 (STEP별 개별)
+            if (s.audio_url) {
+                const aPath = path.join(tempDir, `merge_a_${planId}_${i}.wav`);
+                tempFiles.push(aPath);
+                try {
+                    await downloadFile(s.audio_url, aPath);
+                    const withAudioPath = path.join(tempDir, `va_${planId}_${i}.mp4`);
+                    tempFiles.push(withAudioPath);
+
+                    // 영상 길이에 맞춰 나레이션 합성 (-shortest: 짧은 쪽에 맞춤)
+                    await execFileAsync(FFMPEG, [
+                        '-i', currentPath.replace(/\\/g, '/'),
+                        '-i', aPath.replace(/\\/g, '/'),
+                        '-map', '0:v', '-map', '1:a',
+                        '-c:v', 'copy', '-c:a', 'aac',
+                        '-shortest',
+                        '-y', withAudioPath.replace(/\\/g, '/'),
+                    ], { timeout: 120000 });
+                    currentPath = withAudioPath;
+                    console.log(`[Merge] STEP ${i + 1} 나레이션 합성 완료`);
+                } catch (audioErr) {
+                    console.warn(`[Merge] STEP ${i + 1} 나레이션 실패:`, audioErr.message?.slice(0, 80));
+                }
+            }
+
+            completedSteps.push(currentPath);
         }
 
-        if (videoPaths.length === 0) {
+        if (completedSteps.length === 0) {
             return res.status(400).json({ error: '유효한 영상이 없습니다.' });
         }
 
+        // ──────── 2) 완성된 STEP들 concat ────────
         const outputFilename = `final_${planId}_${Date.now()}.mp4`;
         const outputPath = path.join(videosDir, outputFilename);
 
-        if (videoPaths.length === 1 && audioPaths.length === 0) {
-            // 단일 영상, 오디오 없음 → 복사
-            fs.copyFileSync(videoPaths[0], outputPath);
-        } else if (videoPaths.length === 1 && audioPaths.length > 0) {
-            // 단일 영상 + 오디오
-            await execFileAsync('ffmpeg', [
-                '-i', videoPaths[0].replace(/\\/g, '/'),
-                '-i', audioPaths[0].replace(/\\/g, '/'),
-                '-map', '0:v', '-map', '1:a',
-                '-c:v', 'copy', '-c:a', 'aac', '-shortest',
-                '-y', outputPath.replace(/\\/g, '/'),
-            ], { timeout: 120000 });
+        if (completedSteps.length === 1) {
+            fs.copyFileSync(completedSteps[0], outputPath);
         } else {
-            // 여러 영상 concat
             const listPath = path.join(tempDir, `mergelist_${planId}.txt`);
-            fs.writeFileSync(listPath, videoPaths.map((p) => `file '${p.replace(/\\/g, '/')}'`).join('\n'));
+            fs.writeFileSync(listPath, completedSteps.map((p) => `file '${p.replace(/\\/g, '/')}'`).join('\n'));
             tempFiles.push(listPath);
 
-            const concatPath = path.join(tempDir, `concat_${planId}.mp4`);
-            tempFiles.push(concatPath);
-
-            console.log(`[ffmpeg] concat filelist:\n${fs.readFileSync(listPath, 'utf8')}`);
+            console.log(`[Merge] ${completedSteps.length} STEP concat 시작`);
             try {
-                // 먼저 stream copy로 시도 (빠름)
-                await execFileAsync('ffmpeg', [
+                await execFileAsync(FFMPEG, [
                     '-f', 'concat', '-safe', '0',
                     '-i', listPath.replace(/\\/g, '/'),
-                    '-c', 'copy', '-y', concatPath.replace(/\\/g, '/'),
+                    '-c', 'copy',
+                    '-y', outputPath.replace(/\\/g, '/'),
                 ], { timeout: 300000 });
             } catch (copyErr) {
-                // copy 실패 시 재인코딩으로 폴백
-                console.warn('[ffmpeg] concat copy 실패, 재인코딩 시도:', copyErr.message?.slice(0, 100));
-                await execFileAsync('ffmpeg', [
+                console.warn('[Merge] concat copy 실패, 재인코딩:', copyErr.message?.slice(0, 80));
+                await execFileAsync(FFMPEG, [
                     '-f', 'concat', '-safe', '0',
                     '-i', listPath.replace(/\\/g, '/'),
                     '-c:v', 'libx264', '-preset', 'fast', '-crf', '23',
                     '-c:a', 'aac', '-b:a', '128k',
-                    '-y', concatPath.replace(/\\/g, '/'),
-                ], { timeout: 600000 });
-            }
-
-            if (audioPaths.length > 0) {
-                // 오디오도 concat
-                const aListPath = path.join(tempDir, `amerge_${planId}.txt`);
-                fs.writeFileSync(aListPath, audioPaths.map((p) => `file '${p.replace(/\\/g, '/')}'`).join('\n'));
-                tempFiles.push(aListPath);
-
-                const concatAudio = path.join(tempDir, `caudio_${planId}.wav`);
-                tempFiles.push(concatAudio);
-
-                await execFileAsync('ffmpeg', [
-                    '-f', 'concat', '-safe', '0',
-                    '-i', aListPath.replace(/\\/g, '/'),
-                    '-c', 'copy', '-y', concatAudio.replace(/\\/g, '/'),
-                ], { timeout: 120000 });
-
-                await execFileAsync('ffmpeg', [
-                    '-i', concatPath.replace(/\\/g, '/'),
-                    '-i', concatAudio.replace(/\\/g, '/'),
-                    '-map', '0:v', '-map', '1:a',
-                    '-c:v', 'copy', '-c:a', 'aac', '-shortest',
                     '-y', outputPath.replace(/\\/g, '/'),
-                ], { timeout: 120000 });
-            } else {
-                fs.copyFileSync(concatPath, outputPath);
+                ], { timeout: 600000 });
             }
         }
 
-        // 임시 파일 정리
+        // ──────── 3) 정리 ────────
         for (const f of tempFiles) {
             try { if (fs.existsSync(f)) fs.unlinkSync(f); } catch { /* ignore */ }
         }
@@ -618,10 +648,12 @@ export const mergeVideo = async (req, res) => {
         const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
         const videoUrl = `${baseUrl}/api/v2/video/serve/${encodeURIComponent(outputFilename)}`;
 
-        console.log(`[Video Merge] 최종 합성 완료 — ${outputFilename}`);
+        const hasSubtitles = mergeSteps.some((s) => s.subtitle?.trim());
+        const hasAudio = mergeSteps.some((s) => s.audio_url);
+        console.log(`[Video Merge] 최종 합성 완료 — ${outputFilename} (자막: ${hasSubtitles ? 'O' : 'X'}, 나레이션: ${hasAudio ? 'O' : 'X'})`);
         return res.json({
             success: true,
-            data: { video_url: videoUrl, steps_used: videoPaths.length, filename: outputFilename },
+            data: { video_url: videoUrl, steps_used: completedSteps.length, filename: outputFilename, has_subtitles: hasSubtitles },
         });
     } catch (error) {
         for (const f of tempFiles) {

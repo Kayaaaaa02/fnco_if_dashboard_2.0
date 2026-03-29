@@ -97,7 +97,10 @@
       "Bash(powershell.exe -Command \"Get-ChildItem -Path 'C:\\\\' -Recurse -Filter 'kling-reference.md' -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName\" 2>/dev/null)",
       "Bash(powershell.exe -Command \"Get-ChildItem -Path 'C:\\\\Users\\\\AC1058' -Recurse -Filter 'kling-reference*' -ErrorAction SilentlyContinue | Select-Object -First 5 -ExpandProperty FullName\")",
       "Bash(IMAGE_URL=\"http://localhost:5000/api/ai-image/serve/plan/plan_1774317159902/gen_1_1774317181002_0.png\")",
-      "Bash(where ffmpeg:*)"
+      "Bash(where ffmpeg:*)",
+      "Bash(ffmpeg -i \"C:/fnco_influencer_seeding-main_final/fnco_influencer_seeding-main/server/uploads/generated-videos/step_79_s1_1774400142032.mp4\" -vf \"drawtext=text=''''test'''':fontcolor=white:fontsize=26:x=100:y=100\" -c:v libx264 -preset fast -crf 23 -y \"C:/fnco_influencer_seeding-main_final/fnco_influencer_seeding-main/server/uploads/temp/sub_test2.mp4\")",
+      "Bash(ffmpeg:*)",
+      "Bash(\"C:/ProgramData/chocolatey/bin/ffmpeg.exe\" -i \"C:/fnco_influencer_seeding-main_final/fnco_influencer_seeding-main/server/uploads/generated-videos/step_79_s1_1774400142032.mp4\" -vf \"drawtext=text=''''test'''':fontcolor=white:fontsize=26:x=100:y=100\" -c:v libx264 -preset fast -crf 23 -y \"C:/fnco_influencer_seeding-main_final/fnco_influencer_seeding-main/server/uploads/temp/sub_choco_test.mp4\")"
     ]
   }
 }

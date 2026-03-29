@@ -344,19 +344,28 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
   const [videoUrl, setVideoUrl] = useState(guide.video_url || null);
   const [videoError, setVideoError] = useState(null);
   const [klingTaskId, setKlingTaskId] = useState(null);
-  // 나레이션 설정
-  const [narrationByStep, setNarrationByStep] = useState({});
-  const [voiceGender, setVoiceGender] = useState('female');
-  const [voiceTone, setVoiceTone] = useState('bright');
-  // STEP별 나레이션 생성 상태: { [stepKey]: 'idle' | 'generating' | 'done' }
-  const [narrationGenState, setNarrationGenState] = useState({});
-  // STEP별 생성된 오디오 URL
-  const [audioByStep, setAudioByStep] = useState({});
-  // STEP별 감정 프리셋
-  const [emotionByStep, setEmotionByStep] = useState({});
+  // 나레이션 설정 — production_guide에서 복원
+  const [narrationByStep, setNarrationByStep] = useState(guide.narrations || {});
+  const [voiceGender, setVoiceGender] = useState(guide.voice?.gender || 'female');
+  const [voiceTone, setVoiceTone] = useState(guide.voice?.tone || 'bright');
+  // STEP별 나레이션 생성 상태: 저장된 오디오가 있으면 'saved'
+  const [narrationGenState, setNarrationGenState] = useState(() => {
+    const init = {};
+    const urls = guide.audio_urls || {};
+    Object.keys(urls).forEach((key) => { if (urls[key]) init[key] = 'saved'; });
+    return init;
+  });
+  // STEP별 생성된 오디오 URL — production_guide에서 복원
+  const [audioByStep, setAudioByStep] = useState(guide.audio_urls || {});
+  // STEP별 감정 프리셋 — production_guide에서 복원
+  const [emotionByStep, setEmotionByStep] = useState(guide.emotions || {});
   const getEmotion = (stepKey) => emotionByStep[stepKey] || 'normal';
-  // STEP별 자막 텍스트
-  const [subtitleByStep, setSubtitleByStep] = useState({});
+  // STEP별 자막 텍스트 + 스타일 설정
+  const [subtitleByStep, setSubtitleByStep] = useState(guide.subtitles || {});
+  const [subtitleStyleByStep, setSubtitleStyleByStep] = useState(guide.subtitle_styles || {}); // { stepKey: 'reels' | 'broadcast' | 'thumbnail' }
+  const getSubtitleStyle = (stepKey) => subtitleStyleByStep[stepKey] || 'reels';
+  // STEP별 자막 저장 상태: { stepKey: 'idle' | 'saved' }
+  const [subtitleSaveState, setSubtitleSaveState] = useState({});
 
   // 제품 이미지 첨부 상태
   const [productImageFiles, setProductImageFiles] = useState([]);
@@ -765,13 +774,15 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
     });
   };
 
-  // 전체 승인 → 최종 합성 (나레이션 + concat)
+  // 전체 승인 → 최종 합성 (나레이션 + 자막 + concat)
   const handleMergeAll = () => {
     const approvedSteps = STEPS
       .filter((s) => videoByStep[s.key]?.status === 'approved' && videoByStep[s.key]?.url)
       .map((s) => ({
         video_url: videoByStep[s.key].url,
         audio_url: audioByStep[s.key] || null,
+        subtitle: getSubtitle(s.key) || '',
+        subtitle_style: getSubtitleStyle(s.key),
       }));
 
     if (approvedSteps.length === 0) {
@@ -779,7 +790,9 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
       return;
     }
 
+    console.log(`[Merge] 최종 합성 시작 — ${approvedSteps.length} STEP, 자막: ${approvedSteps.filter(s => s.subtitle).length}, 나레이션: ${approvedSteps.filter(s => s.audio_url).length}`);
     setMergeState('merging');
+    setVideoUrl(null); // 이전 URL 초기화 → 새 영상으로 교체
     setVideoError(null);
 
     mergeMutation.mutate(
@@ -879,6 +892,7 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
           voice: { gender: voiceGender, tone: voiceTone },
           audio_urls: audioByStep,
           subtitles: Object.fromEntries(STEPS.map((s) => [s.key, getSubtitle(s.key)])),
+          subtitle_styles: Object.fromEntries(STEPS.map((s) => [s.key, getSubtitleStyle(s.key)])),
         },
       });
       setImageSaved(true);
@@ -1188,25 +1202,150 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
                     );
                   })}
                 </div>
-                {/* 자막 입력 */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8, marginTop: 8, paddingLeft: 60 }}>
-                  <span style={{
-                    fontSize: 10, fontWeight: 700, color: '#0ea5e9',
-                    padding: '4px 6px', borderRadius: 4,
-                    background: '#f0f9ff', border: '1px solid #bae6fd',
-                    whiteSpace: 'nowrap', marginTop: 2,
-                  }}>자막</span>
-                  <input
-                    type="text"
-                    value={getSubtitle(step.key)}
-                    onChange={(e) => setSubtitleByStep((prev) => ({ ...prev, [step.key]: e.target.value }))}
-                    placeholder="영상에 표시될 자막 (나레이션에서 자동 추출)"
-                    style={{
-                      flex: 1, padding: '5px 10px', borderRadius: 6,
-                      border: `1px solid ${tokens.color.border}`,
-                      fontSize: 11, color: tokens.color.text, background: '#fff',
-                    }}
-                  />
+                {/* 자막 설정 (subtitle-styles.md 참조) */}
+                <div style={{ marginTop: 10, paddingLeft: 60 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                    <span style={{
+                      fontSize: 10, fontWeight: 700, color: '#0ea5e9',
+                      padding: '3px 6px', borderRadius: 4,
+                      background: '#f0f9ff', border: '1px solid #bae6fd',
+                      whiteSpace: 'nowrap',
+                    }}>자막</span>
+                    {/* 스타일 선택 */}
+                    {[
+                      { value: 'reels', label: '기본 텍스트', desc: '흰색 + 아웃라인', color: '#ec4899' },
+                      { value: 'broadcast', label: '라운드+텍스트', desc: '흰색 바 + 검정', color: '#0ea5e9' },
+                      { value: 'thumbnail', label: '이탤릭체', desc: '기울임 + 강조색', color: '#f59e0b' },
+                    ].map((st) => {
+                      const active = getSubtitleStyle(step.key) === st.value;
+                      return (
+                        <button
+                          key={st.value}
+                          type="button"
+                          onClick={() => setSubtitleStyleByStep((prev) => ({ ...prev, [step.key]: st.value }))}
+                          style={{
+                            padding: '3px 8px', borderRadius: 5, fontSize: 9, fontWeight: 600,
+                            border: active ? `2px solid ${st.color}` : `1px solid ${tokens.color.border}`,
+                            background: active ? `${st.color}12` : '#fff',
+                            color: active ? st.color : '#94a3b8',
+                            cursor: 'pointer',
+                          }}
+                          title={st.desc}
+                        >{st.label}</button>
+                      );
+                    })}
+                  </div>
+                  {/* 자막 텍스트 입력 + 저장 */}
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    <textarea
+                      value={getSubtitle(step.key)}
+                      onChange={(e) => {
+                        setSubtitleByStep((prev) => ({ ...prev, [step.key]: e.target.value }));
+                        setSubtitleSaveState((prev) => ({ ...prev, [step.key]: 'idle' }));
+                      }}
+                      placeholder="영상에 표시될 자막 (나레이션에서 자동 추출). 줄바꿈으로 여러 줄 입력."
+                      rows={2}
+                      style={{
+                        flex: 1, padding: '6px 10px', borderRadius: 6,
+                        border: `1px solid ${tokens.color.border}`,
+                        fontSize: 11, color: tokens.color.text, background: '#fff',
+                        resize: 'vertical', lineHeight: 1.5,
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        if (onSave) {
+                          onSave({
+                            ai_editor_data: {
+                              saved_images: savedImagesByStep,
+                              selected_style: selectedStyle,
+                              prompts: promptByStep,
+                              narrations: Object.fromEntries(STEPS.map((s) => [s.key, getNarration(s.key)])),
+                              emotions: Object.fromEntries(STEPS.map((s) => [s.key, getEmotion(s.key)])),
+                              voice: { gender: voiceGender, tone: voiceTone },
+                              audio_urls: audioByStep,
+                              subtitles: Object.fromEntries(STEPS.map((s) => [s.key, getSubtitle(s.key)])),
+                              subtitle_styles: Object.fromEntries(STEPS.map((s) => [s.key, getSubtitleStyle(s.key)])),
+                            },
+                          }).then(() => {
+                            setSubtitleSaveState((prev) => ({ ...prev, [step.key]: 'saved' }));
+                          }).catch(() => {});
+                        }
+                      }}
+                      disabled={subtitleSaveState[step.key] === 'saved'}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: 3,
+                        padding: '6px 10px', borderRadius: 6, fontSize: 10, fontWeight: 600,
+                        border: 'none', whiteSpace: 'nowrap', alignSelf: 'flex-start',
+                        background: subtitleSaveState[step.key] === 'saved' ? '#059669' : '#0ea5e9',
+                        color: '#fff',
+                        cursor: subtitleSaveState[step.key] === 'saved' ? 'default' : 'pointer',
+                      }}
+                    >
+                      {subtitleSaveState[step.key] === 'saved' ? (
+                        <><CheckCircle2 style={{ width: 10, height: 10 }} /> 저장됨</>
+                      ) : (
+                        <><Save style={{ width: 10, height: 10 }} /> 저장</>
+                      )}
+                    </button>
+                  </div>
+                  {/* 자막 미리보기 */}
+                  {getSubtitle(step.key) && (
+                    <div style={{
+                      marginTop: 6, borderRadius: 8, overflow: 'hidden',
+                      background: '#000', padding: '20px 16px', position: 'relative',
+                      minHeight: 60,
+                    }}>
+                      {getSubtitleStyle(step.key) === 'reels' && (
+                        /* Reels 스타일: 흰색 글씨 + 아웃라인 + 그림자 */
+                        <div style={{ textAlign: 'center' }}>
+                          {getSubtitle(step.key).split('\n').map((line, li) => (
+                            <p key={li} style={{
+                              fontSize: 14, fontWeight: 800, color: '#fff', margin: '2px 0',
+                              textShadow: '1px 1px 3px rgba(0,0,0,.8), -1px -1px 0 rgba(0,0,0,.5)',
+                              letterSpacing: '0.5px',
+                            }}>{line}</p>
+                          ))}
+                        </div>
+                      )}
+                      {getSubtitleStyle(step.key) === 'broadcast' && (
+                        /* 방송 스타일: 흰색 반투명 바 + 검정 글씨 */
+                        <div style={{ display: 'flex', justifyContent: 'center' }}>
+                          <div style={{
+                            background: 'rgba(255,255,255,.85)', borderRadius: 6,
+                            padding: '8px 16px', maxWidth: '90%',
+                          }}>
+                            {getSubtitle(step.key).split('\n').map((line, li) => (
+                              <p key={li} style={{
+                                fontSize: 13, fontWeight: 700, color: '#000', margin: '1px 0',
+                                textAlign: 'center',
+                              }}>{line}</p>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      {getSubtitleStyle(step.key) === 'thumbnail' && (
+                        /* 썸네일 스타일: 이탤릭 + 강조색 + 그라디언트 배경 */
+                        <div style={{
+                          background: 'linear-gradient(transparent, rgba(0,0,0,.7))',
+                          borderRadius: 6, padding: '12px 16px', textAlign: 'center',
+                        }}>
+                          {getSubtitle(step.key).split('\n').map((line, li) => (
+                            <p key={li} style={{
+                              fontSize: li === 0 ? 10 : 16, fontWeight: 800,
+                              color: li === 0 ? '#D4847A' : '#fff',
+                              margin: '2px 0', fontStyle: 'italic',
+                              textShadow: '2px 2px 4px rgba(0,0,0,.6)',
+                            }}>{line}</p>
+                          ))}
+                        </div>
+                      )}
+                      <span style={{
+                        position: 'absolute', top: 4, right: 6,
+                        fontSize: 8, color: 'rgba(255,255,255,.4)', fontWeight: 600,
+                      }}>미리보기</span>
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -1274,15 +1413,6 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
                 </button>
               )}
             </div>
-
-            {/* 최종 합성 영상 (done 상태) */}
-            {videoState === 'done' && videoUrl && (
-              <div style={{ padding: '20px', display: 'flex', justifyContent: 'center' }}>
-                <div style={{ borderRadius: 12, overflow: 'hidden', background: '#000', maxWidth: 270, aspectRatio: '9/16' }}>
-                  <video src={videoUrl} controls playsInline style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                </div>
-              </div>
-            )}
 
             {/* STEP별 영상 카드 */}
             <div style={{ padding: '16px 20px', display: 'grid', gridTemplateColumns: `repeat(${STEPS.length}, 1fr)`, gap: 12 }}>
@@ -1358,6 +1488,39 @@ export default function AIImageEditor({ creative, campaign, onBack, onPrev, onNe
                 );
               })}
             </div>
+
+            {/* 통합 영상 (STEP 카드 아래) */}
+            {videoUrl && (
+              <div style={{
+                padding: '20px', borderTop: `1px solid ${tokens.color.border}`,
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                  <Film style={{ width: 16, height: 16, color: '#059669' }} />
+                  <h4 style={{ fontSize: 14, fontWeight: 700, color: '#1e293b', margin: 0 }}>통합 영상</h4>
+                  <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4, background: '#d1fae5', color: '#059669' }}>
+                    나레이션 + 자막 포함
+                  </span>
+                  {mergeState === 'merging' && (
+                    <span style={{ fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 4, background: '#dbeafe', color: '#2563eb' }}>
+                      <Loader2 style={{ width: 10, height: 10, animation: 'spin 1s linear infinite', display: 'inline', verticalAlign: 'middle', marginRight: 3 }} />
+                      합성 중...
+                    </span>
+                  )}
+                </div>
+                <div style={{
+                  borderRadius: 12, overflow: 'hidden', background: '#000',
+                  maxWidth: 320, aspectRatio: '9/16', margin: '0 auto',
+                }}>
+                  <video
+                    key={videoUrl}
+                    src={videoUrl}
+                    controls
+                    playsInline
+                    style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#000' }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         )}
 
