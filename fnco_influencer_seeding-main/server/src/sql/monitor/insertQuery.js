@@ -8,6 +8,8 @@ export const insertMetric = (data) => {
         data.impressions || 0,
         data.reach || 0,
         data.clicks || 0,
+        data.comments || 0,
+        data.shares || 0,
         data.ctr || 0,
         data.cpa || 0,
         data.roas || 0,
@@ -26,6 +28,8 @@ export const insertMetric = (data) => {
                 impressions,
                 reach,
                 clicks,
+                comments,
+                shares,
                 ctr,
                 cpa,
                 roas,
@@ -34,7 +38,7 @@ export const insertMetric = (data) => {
                 fatigue_score,
                 created_at
             ) VALUES (
-                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW()
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW()
             )
             RETURNING *
         `,
@@ -48,7 +52,7 @@ export const insertBulkMetrics = (campaignId, metrics) => {
     const valueRows = [];
 
     metrics.forEach((m, idx) => {
-        const offset = idx * 12;
+        const offset = idx * 14;
         params.push(
             campaignId,
             m.creative_id,
@@ -57,6 +61,8 @@ export const insertBulkMetrics = (campaignId, metrics) => {
             m.impressions || 0,
             m.reach || 0,
             m.clicks || 0,
+            m.comments || 0,
+            m.shares || 0,
             m.ctr || 0,
             m.cpa || 0,
             m.roas || 0,
@@ -64,14 +70,14 @@ export const insertBulkMetrics = (campaignId, metrics) => {
             m.conversions || 0,
         );
         valueRows.push(
-            `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11}, $${offset + 12}, ${m.fatigue_score || 0}, NOW())`
+            `($${offset + 1}, $${offset + 2}, $${offset + 3}, $${offset + 4}, $${offset + 5}, $${offset + 6}, $${offset + 7}, $${offset + 8}, $${offset + 9}, $${offset + 10}, $${offset + 11}, $${offset + 12}, $${offset + 13}, $${offset + 14}, ${m.fatigue_score || 0}, NOW())`
         );
     });
 
     return {
         insertQuery: `
             INSERT INTO dw_performance_metric (
-                campaign_id, creative_id, concept_id, date, impressions, reach, clicks, ctr, cpa, roas, engaged_views, conversions, fatigue_score, created_at
+                campaign_id, creative_id, concept_id, date, impressions, reach, clicks, comments, shares, ctr, cpa, roas, engaged_views, conversions, fatigue_score, created_at
             ) VALUES ${valueRows.join(', ')}
             RETURNING *
         `,

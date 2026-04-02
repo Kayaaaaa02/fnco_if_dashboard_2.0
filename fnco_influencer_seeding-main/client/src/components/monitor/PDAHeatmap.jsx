@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge.jsx';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip.jsx';
 import { Grid3X3, Loader2, Trophy, TrendingUp, AlertTriangle, Heart, Megaphone, ExternalLink, User } from 'lucide-react';
 import { tokens } from '@/styles/designTokens.js';
+import { mockPDAHeatmap } from '@/mocks/data.js';
 
 /* ── Awareness 뱃지 색상 ── */
 const A_COLORS = {
@@ -29,25 +30,38 @@ export default function PDAHeatmap() {
   const { data: heatmapData, isLoading } = usePDAHeatmap(campaignId);
   const [activeTab, setActiveTab] = useState('engagement');
 
-  const personas = heatmapData?.personas || [];
-  const desires = heatmapData?.desires || [];
-  const cells = heatmapData?.cells || [];
+  // API 데이터가 비어있으면 mock fallback 사용
+  const hasApiData = heatmapData && (
+    (Array.isArray(heatmapData.personas) && heatmapData.personas.length > 0) ||
+    (Array.isArray(heatmapData.cells) && heatmapData.cells.length > 0) ||
+    (Array.isArray(heatmapData) && heatmapData.length > 0)
+  );
+  const effectiveData = hasApiData ? heatmapData : mockPDAHeatmap;
+  const personas = effectiveData?.personas || [];
+  const desires = effectiveData?.desires || [];
+  const cells = effectiveData?.cells || [];
 
   const isEngTab = activeTab === 'engagement';
 
-  const { cellMap, rankedByEng, rankedByRoas, topEngKeys, topRoasKeys } = useMemo(() => {
+  const TOP_BORDER_COLORS = ['#f59e0b', '#10b981', '#3b82f6'];
+  const TOP_BG_COLORS = ['rgba(245,158,11,0.05)', 'rgba(16,185,129,0.05)', 'rgba(59,130,246,0.05)'];
+  const TOP_BADGE_COLORS = ['linear-gradient(135deg, #f59e0b, #f97316)', 'linear-gradient(135deg, #10b981, #059669)', 'linear-gradient(135deg, #3b82f6, #6366f1)'];
+
+  const { cellMap, rankedByEng, rankedByRoas, topEngRankMap, topRoasRankMap } = useMemo(() => {
     const map = {};
     for (const cell of cells) {
       map[`${cell.persona_code}-${cell.desire_code}`] = cell;
     }
     const byEng = [...cells].filter(c => c.avg_engagement != null).sort((a, b) => b.avg_engagement - a.avg_engagement);
     const byRoas = [...cells].filter(c => c.avg_roas != null).sort((a, b) => b.avg_roas - a.avg_roas);
-    const topEng = new Set(byEng.slice(0, 3).map(c => `${c.persona_code}-${c.desire_code}`));
-    const topRoas = new Set(byRoas.slice(0, 3).map(c => `${c.persona_code}-${c.desire_code}`));
-    return { cellMap: map, rankedByEng: byEng, rankedByRoas: byRoas, topEngKeys: topEng, topRoasKeys: topRoas };
+    const engMap = new Map();
+    byEng.slice(0, 3).forEach((c, i) => engMap.set(`${c.persona_code}-${c.desire_code}`, i));
+    const roasMap = new Map();
+    byRoas.slice(0, 3).forEach((c, i) => roasMap.set(`${c.persona_code}-${c.desire_code}`, i));
+    return { cellMap: map, rankedByEng: byEng, rankedByRoas: byRoas, topEngRankMap: engMap, topRoasRankMap: roasMap };
   }, [cells]);
 
-  const topKeys = isEngTab ? topEngKeys : topRoasKeys;
+  const topRankMap = isEngTab ? topEngRankMap : topRoasRankMap;
   const ranked = isEngTab ? rankedByEng : rankedByRoas;
 
   if (isLoading) {
@@ -85,22 +99,29 @@ export default function PDAHeatmap() {
     return `${c.ctr?.toFixed(1)}%`;
   }
 
-  /* ── 셀 요약 메트릭 (탭별 3개) ── */
+  /* ── 셀 요약 메트릭 (탭별 3개, 발행 콘텐츠 평균값) ── */
   function renderCellMetrics(cell) {
+    const cnt = cell.contents_count;
     if (isEngTab) {
       return (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-          <span style={{ fontSize: 10, color: '#94a3b8' }}>VIEW <b style={{ color: '#1e293b' }}>{formatNum(cell.avg_views)}</b></span>
-          <span style={{ fontSize: 10, color: '#94a3b8' }}>ENG <b style={{ color: '#6366f1' }}>{cell.avg_engagement?.toFixed(1)}%</b></span>
-          <span style={{ fontSize: 10, color: '#94a3b8' }}>LIKE <b style={{ color: '#ec4899' }}>{formatNum(cell.avg_likes)}</b></span>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 10, color: '#94a3b8' }}>VIEW <b style={{ color: '#1e293b' }}>{formatNum(cell.avg_views)}</b></span>
+            <span style={{ fontSize: 10, color: '#94a3b8' }}>ENG <b style={{ color: '#6366f1' }}>{cell.avg_engagement?.toFixed(1)}%</b></span>
+            <span style={{ fontSize: 10, color: '#94a3b8' }}>LIKE <b style={{ color: '#ec4899' }}>{formatNum(cell.avg_likes)}</b></span>
+          </div>
+          {cnt != null && <span style={{ fontSize: 9, color: '#b0b0b0' }}>발행 {cnt}건 평균</span>}
         </div>
       );
     }
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-        <span style={{ fontSize: 10, color: '#94a3b8' }}>CTR <b style={{ color: '#6366f1' }}>{(cell.avg_ctr * 100)?.toFixed(1)}%</b></span>
-        <span style={{ fontSize: 10, color: '#94a3b8' }}>ROAS <b style={{ color: '#10b981' }}>{cell.avg_roas?.toFixed(1)}x</b></span>
-        <span style={{ fontSize: 10, color: '#94a3b8' }}>전환 <b style={{ color: '#1e293b' }}>{formatNum(cell.total_conversions)}</b></span>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 6 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontSize: 10, color: '#94a3b8' }}>CTR <b style={{ color: '#6366f1' }}>{(cell.avg_ctr * 100)?.toFixed(1)}%</b></span>
+          <span style={{ fontSize: 10, color: '#94a3b8' }}>ROAS <b style={{ color: '#10b981' }}>{cell.avg_roas?.toFixed(1)}x</b></span>
+          <span style={{ fontSize: 10, color: '#94a3b8' }}>전환 <b style={{ color: '#1e293b' }}>{formatNum(cell.total_conversions)}</b></span>
+        </div>
+        {cnt != null && <span style={{ fontSize: 9, color: '#b0b0b0' }}>발행 {cnt}건 평균</span>}
       </div>
     );
   }
@@ -111,7 +132,7 @@ export default function PDAHeatmap() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <Grid3X3 style={{ width: 16, height: 16, color: '#94a3b8' }} />
-            <CardTitle style={{ fontSize: 14 }}>P.D.A. 매트릭스</CardTitle>
+            <CardTitle style={{ fontSize: 14, fontWeight: 800 }}>P.D.A. 매트릭스</CardTitle>
             <span style={{ fontSize: 11, color: '#94a3b8', fontWeight: 500 }}>
               {personas.length}P × {desires.length}D
             </span>
@@ -193,8 +214,12 @@ export default function PDAHeatmap() {
                     {desires.map(d => {
                       const key = `${p.code}-${d.code}`;
                       const cell = cellMap[key];
-                      const isTop = topKeys.has(key);
+                      const topIdx = topRankMap.has(key) ? topRankMap.get(key) : -1;
+                      const isTop = topIdx >= 0;
                       const concepts = cell?.concepts_detail || [];
+                      const topBorderColor = isTop ? TOP_BORDER_COLORS[topIdx] : tokens.color.border;
+                      const topBgColor = isTop ? TOP_BG_COLORS[topIdx] : tokens.color.surface;
+                      const topBadgeBg = isTop ? TOP_BADGE_COLORS[topIdx] : '';
 
                       return (
                         <td key={d.code} style={{ padding: 4, borderBottom: `1px solid ${tokens.color.border}` }}>
@@ -203,23 +228,23 @@ export default function PDAHeatmap() {
                               <div style={{
                                 position: 'relative',
                                 borderRadius: 10,
-                                border: isTop ? '2px solid #6366f1' : `1px solid ${tokens.color.border}`,
-                                background: isTop ? 'rgba(99,102,241,0.04)' : tokens.color.surface,
+                                border: isTop ? `2px solid ${topBorderColor}` : `1px solid ${tokens.color.border}`,
+                                background: topBgColor,
                                 padding: '10px 12px',
                                 cursor: 'default',
                                 transition: 'all .2s ease',
-                                boxShadow: isTop ? '0 0 12px rgba(99,102,241,0.15)' : 'none',
+                                boxShadow: isTop ? `0 0 12px ${topBorderColor}30` : 'none',
                                 minHeight: 100,
                               }}>
                                 {isTop && (
                                   <div style={{
                                     position: 'absolute', top: -8, right: 8,
-                                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                                    background: topBadgeBg,
                                     color: '#fff', fontSize: 9, fontWeight: 700,
                                     padding: '1px 6px', borderRadius: 999,
-                                    boxShadow: '0 2px 4px rgba(99,102,241,0.3)',
+                                    boxShadow: `0 2px 4px ${topBorderColor}50`,
                                   }}>
-                                    TOP
+                                    TOP {topIdx + 1}
                                   </div>
                                 )}
 
@@ -250,6 +275,26 @@ export default function PDAHeatmap() {
 
                                 {/* 탭별 3개 메트릭 */}
                                 {cell && renderCellMetrics(cell)}
+
+                                {/* 인플루언서 */}
+                                {cell?.top_influencers && cell.top_influencers.length > 0 && (
+                                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3, marginBottom: 6 }}>
+                                    {cell.top_influencers.slice(0, 2).map((inf, i) => (
+                                      <span key={i} style={{
+                                        fontSize: 9, fontWeight: 500, color: '#475569',
+                                        background: '#f1f5f9', padding: '1px 6px', borderRadius: 999,
+                                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 90,
+                                      }}>
+                                        @{inf.name}
+                                      </span>
+                                    ))}
+                                    {cell.top_influencers.length > 2 && (
+                                      <span style={{ fontSize: 9, color: '#94a3b8', padding: '1px 4px' }}>
+                                        +{cell.top_influencers.length - 2}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
 
                                 {/* 효율 바 */}
                                 <div style={{
@@ -327,10 +372,12 @@ export default function PDAHeatmap() {
             </div>
           ))}
           <span style={{ marginLeft: 8, fontSize: 10, color: '#94a3b8' }}>|</span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <div style={{ width: 14, height: 14, borderRadius: 4, border: '2px solid #6366f1', background: 'rgba(99,102,241,0.06)' }} />
-            <span style={{ fontSize: 10, color: '#6366f1', fontWeight: 600 }}>TOP 효율</span>
-          </div>
+          {TOP_BORDER_COLORS.map((c, i) => (
+            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+              <div style={{ width: 14, height: 14, borderRadius: 4, border: `2px solid ${c}`, background: TOP_BG_COLORS[i] }} />
+              <span style={{ fontSize: 10, color: c, fontWeight: 600 }}>TOP {i + 1}</span>
+            </div>
+          ))}
           <span style={{ marginLeft: 8, fontSize: 10, color: '#94a3b8' }}>|</span>
           <span style={{ fontSize: 10, color: '#64748b' }}>
             {isEngTab ? '지표: VIEW · ENG율 · LIKE' : '지표: CTR · ROAS · 전환'}
@@ -343,7 +390,7 @@ export default function PDAHeatmap() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 10 }}>
               <Trophy style={{ width: 15, height: 15, color: '#f59e0b' }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: '#1e293b' }}>
-                {isEngTab ? 'ENG 기준' : '광고 효율 기준'} TOP 3 조합
+                {isEngTab ? 'ENG. 기준 PxD 조합 TOP 3' : '광고 효율 기준 PxD 조합 TOP 3'}
               </span>
             </div>
 
@@ -360,10 +407,10 @@ export default function PDAHeatmap() {
                   <TrendingUp key="u2" style={{ width: 14, height: 14, color: '#3b82f6' }} />,
                 ];
 
-                // 탭 기준 베스트 컨셉
-                const bestConcept = isEngTab
-                  ? [...concepts].sort((a, b) => (b.engagement_rate || 0) - (a.engagement_rate || 0))[0]
-                  : [...concepts].sort((a, b) => (b.roas || 0) - (a.roas || 0))[0];
+                // 탭 기준 컨셉 정렬 (전체 표시)
+                const sortedConcepts = isEngTab
+                  ? [...concepts].sort((a, b) => (b.engagement_rate || 0) - (a.engagement_rate || 0))
+                  : [...concepts].sort((a, b) => (b.roas || 0) - (a.roas || 0));
 
                 return (
                   <div key={`${cell.persona_code}-${cell.desire_code}`} style={{
@@ -375,6 +422,9 @@ export default function PDAHeatmap() {
                       <span style={{ fontSize: 12, fontWeight: 700, color: '#1e293b' }}>
                         {idx + 1}위: {cell.persona_code}({pName}) × {cell.desire_code}({dName})
                       </span>
+                      {cell.contents_count != null && (
+                        <span style={{ fontSize: 9, color: '#94a3b8', marginLeft: 'auto' }}>발행 {cell.contents_count}건 평균</span>
+                      )}
                     </div>
 
                     {/* 탭별 메트릭 요약 */}
@@ -422,31 +472,36 @@ export default function PDAHeatmap() {
                       </div>
                     )}
 
-                    {/* 베스트 컨셉 하이라이트 */}
-                    {bestConcept && (
-                      <div style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        background: 'rgba(99,102,241,0.08)', borderRadius: 6, padding: '5px 8px', marginBottom: 6,
-                      }}>
-                        <span style={{
-                          background: (A_COLORS[bestConcept.awareness_code] || {}).bg || '#94a3b8',
-                          color: '#fff', fontSize: 9, fontWeight: 700,
-                          padding: '1px 5px', borderRadius: 999,
-                        }}>{bestConcept.awareness_code}</span>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: '#1e293b' }}>
-                          {bestConcept.concept_name}
-                        </span>
-                        <span style={{ fontSize: 10, color: '#6366f1', fontWeight: 600, marginLeft: 'auto' }}>
-                          {isEngTab
-                            ? `ENG ${bestConcept.engagement_rate?.toFixed(1)}% · LIKE ${formatNum(bestConcept.likes)}`
-                            : `CTR ${bestConcept.ctr?.toFixed(1)}% · ROAS ${bestConcept.roas?.toFixed(1)}x`
-                          }
-                        </span>
+                    {/* 컨셉별 상세 (Awareness 전체 표시) */}
+                    {sortedConcepts.length > 0 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginBottom: 6 }}>
+                        {sortedConcepts.map((c, ci) => (
+                          <div key={ci} style={{
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            background: ci === 0 ? 'rgba(99,102,241,0.08)' : 'rgba(241,245,249,0.6)',
+                            borderRadius: 6, padding: '5px 8px',
+                          }}>
+                            <span style={{
+                              background: (A_COLORS[c.awareness_code] || {}).bg || '#94a3b8',
+                              color: '#fff', fontSize: 9, fontWeight: 700,
+                              padding: '1px 5px', borderRadius: 999, flexShrink: 0,
+                            }}>{c.awareness_code}</span>
+                            <span style={{ fontSize: 11, fontWeight: 600, color: '#1e293b', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {c.concept_name}
+                            </span>
+                            <span style={{ fontSize: 10, color: '#6366f1', fontWeight: 600, flexShrink: 0 }}>
+                              {isEngTab
+                                ? `ENG ${c.engagement_rate?.toFixed(1)}% · LIKE ${formatNum(c.likes)}`
+                                : `CTR ${c.ctr?.toFixed(1)}% · ROAS ${c.roas?.toFixed(1)}x`
+                              }
+                            </span>
+                          </div>
+                        ))}
                       </div>
                     )}
 
-                    {/* 인플루언서 매칭 + 콘텐츠 바로가기 */}
-                    {concepts.some(c => c.influencer) && (
+                    {/* 인플루언서 매칭 */}
+                    {cell.top_influencers && cell.top_influencers.length > 0 && (
                       <div style={{
                         display: 'flex', flexDirection: 'column', gap: 5,
                         background: 'rgba(241,245,249,0.6)', borderRadius: 8, padding: '8px 10px', marginBottom: 6,
@@ -454,47 +509,43 @@ export default function PDAHeatmap() {
                       }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 2 }}>
                           <User style={{ width: 11, height: 11, color: '#94a3b8' }} />
-                          <span style={{ fontSize: 10, fontWeight: 700, color: '#64748b' }}>매칭 인플루언서</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: '#64748b' }}>Top 인플루언서</span>
                         </div>
-                        {concepts.filter(c => c.influencer).map((c, ci) => (
-                          <div key={ci} style={{
-                            display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between',
-                          }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, flex: 1 }}>
-                              <span style={{
-                                background: (A_COLORS[c.awareness_code] || {}).bg || '#94a3b8',
-                                color: '#fff', fontSize: 8, fontWeight: 700,
-                                padding: '1px 4px', borderRadius: 999, flexShrink: 0,
-                              }}>{c.awareness_code}</span>
-                              <span style={{ fontSize: 10, fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {c.influencer.name}
-                              </span>
-                              <span style={{ fontSize: 9, color: '#94a3b8', flexShrink: 0 }}>
-                                {c.influencer.platform} · {c.influencer.followers}
-                              </span>
+                        {cell.top_influencers.map((inf, ci) => {
+                          const platColors = { instagram: '#ec4899', youtube: '#ef4444', tiktok: '#0f172a' };
+                          const platLabels = { instagram: 'IG', youtube: 'YT', tiktok: 'TT' };
+                          return (
+                            <div key={ci} style={{
+                              display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'space-between',
+                            }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 5, minWidth: 0, flex: 1 }}>
+                                <span style={{
+                                  background: platColors[inf.platform] || '#64748b',
+                                  color: '#fff', fontSize: 8, fontWeight: 700,
+                                  padding: '1px 5px', borderRadius: 999, flexShrink: 0,
+                                }}>{platLabels[inf.platform] || inf.platform}</span>
+                                <span style={{ fontSize: 11, fontWeight: 600, color: '#1e293b', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  @{inf.name}
+                                </span>
+                                {inf.concept_name && (
+                                  <span style={{
+                                    fontSize: 9, fontWeight: 500, color: '#7c3aed',
+                                    background: 'rgba(139,92,246,0.08)', padding: '1px 6px', borderRadius: 999,
+                                    whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 120, flexShrink: 0,
+                                  }}>
+                                    {inf.concept_name}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+                                <span style={{ fontSize: 10, color: '#64748b' }}>{formatNum(inf.views)} views</span>
+                                {inf.engagement_rate != null && (
+                                  <span style={{ fontSize: 10, fontWeight: 600, color: '#6366f1' }}>{inf.engagement_rate}%</span>
+                                )}
+                              </div>
                             </div>
-                            {c.content_url && (
-                              <a
-                                href={c.content_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                style={{
-                                  display: 'inline-flex', alignItems: 'center', gap: 3,
-                                  fontSize: 9, fontWeight: 600, color: '#6366f1',
-                                  background: 'rgba(99,102,241,0.08)', padding: '2px 8px', borderRadius: 999,
-                                  textDecoration: 'none', flexShrink: 0,
-                                  border: '1px solid rgba(99,102,241,0.15)',
-                                  transition: 'all .15s ease',
-                                }}
-                                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.15)'; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = 'rgba(99,102,241,0.08)'; }}
-                              >
-                                콘텐츠 보기
-                                <ExternalLink style={{ width: 9, height: 9 }} />
-                              </a>
-                            )}
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     )}
 

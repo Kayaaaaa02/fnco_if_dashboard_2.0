@@ -1485,6 +1485,41 @@ export const mockMonitorDashboard = {
     { creative_id: 2, concept_name: '3분 클렌징 루틴', avg_views: 142000, engagement_rate: 2.58, avg_likes: 980 },
     { creative_id: 3, concept_name: '성분 비교: TOP 5', avg_views: 128000, engagement_rate: 2.31, avg_likes: 890 },
   ],
+  // 콘텐츠 타임라인 — 버블 차트 데이터
+  content_timeline: [
+    { date: '2026-03-05', upload_dt: '2026-03-05', content_summary: '쌩얼 자신감 챌린지', author_nm: 'olafflee', platform: 'tiktok', view_count: 1240000, like_count: 89000, comment_count: 3200, share_count: 12400, copy_type: 'Pain', bf_grade: 'A', geo_ready: true, thumbnail_url: 'https://picsum.photos/seed/tt-challenge/320/180', post_url: 'https://tiktok.com/@olafflee/video/001' },
+    { date: '2026-03-06', upload_dt: '2026-03-06', content_summary: '7일 클렌징 루틴 브이로그', author_nm: 'youseeany', platform: 'tiktok', view_count: 567000, like_count: 23400, comment_count: 1800, share_count: 4200, copy_type: 'Utility', bf_grade: 'B', geo_ready: false, thumbnail_url: 'https://picsum.photos/seed/tt-routine/320/180', post_url: 'https://tiktok.com/@youseeany/video/002' },
+    { date: '2026-03-07', upload_dt: '2026-03-07', content_summary: '클렌징밤 TOP5 비교 리뷰', author_nm: 'leojmakeup', platform: 'youtube', view_count: 312000, like_count: 14200, comment_count: 2100, share_count: 3800, copy_type: 'Contradiction', bf_grade: 'C', geo_ready: false, thumbnail_url: 'https://picsum.photos/seed/yt-top5/320/180', post_url: 'https://youtube.com/watch?v=003' },
+    { date: '2026-03-08', upload_dt: '2026-03-08', content_summary: '올리브영 신상 클렌징밤 리뷰', author_nm: 'dkdud5070', platform: 'tiktok', view_count: 156000, like_count: 7800, comment_count: 920, share_count: 1500, copy_type: 'Fame', bf_grade: 'C', geo_ready: false, thumbnail_url: 'https://picsum.photos/seed/tt-oliveyoung/320/180', post_url: 'https://tiktok.com/@dkdud5070/video/004' },
+    { date: '2026-03-09', upload_dt: '2026-03-09', content_summary: '셔벗 ASMR 클렌징', author_nm: 'olafflee', platform: 'tiktok', view_count: 980000, like_count: 52000, comment_count: 4100, share_count: 9800, copy_type: 'ASMR', bf_grade: 'A', geo_ready: true, thumbnail_url: 'https://picsum.photos/seed/tt-asmr/320/180', post_url: 'https://tiktok.com/@olafflee/video/005' },
+    { date: '2026-03-11', upload_dt: '2026-03-11', content_summary: '3분 모닝 루틴 with 클렌징밤', author_nm: 'sunn416', platform: 'instagram', view_count: 420000, like_count: 18500, comment_count: 1400, share_count: 3200, copy_type: 'Utility', bf_grade: 'B', geo_ready: false, thumbnail_url: 'https://picsum.photos/seed/ig-morning/320/180', post_url: 'https://instagram.com/reel/006' },
+    { date: '2026-03-14', upload_dt: '2026-03-14', content_summary: '클렌징밤 vs 폼클렌저 시카대결', author_nm: 'leojmakeup', platform: 'youtube', view_count: 680000, like_count: 31000, comment_count: 4800, share_count: 8200, copy_type: 'Result', bf_grade: 'A', geo_ready: true, thumbnail_url: 'https://picsum.photos/seed/yt-versus/320/180', post_url: 'https://youtube.com/watch?v=007' },
+    { date: '2026-03-18', upload_dt: '2026-03-18', content_summary: '민감피부 클렌징 ASMR', author_nm: '3eunji__', platform: 'tiktok', view_count: 890000, like_count: 45000, comment_count: 3600, share_count: 11000, copy_type: 'ASMR', bf_grade: 'A', geo_ready: true, thumbnail_url: 'https://picsum.photos/seed/tt-sensitive/320/180', post_url: 'https://tiktok.com/@3eunji__/video/008' },
+  ],
+  // 판매량 타임라인 — 영역 그래프 데이터 (수동 입력 기반)
+  sales_timeline: [
+    { date: '2026-03-01', sales: 420 },
+    { date: '2026-03-02', sales: 385 },
+    { date: '2026-03-03', sales: 410 },
+    { date: '2026-03-04', sales: 390 },
+    { date: '2026-03-05', sales: 480 },
+    { date: '2026-03-06', sales: 620 },
+    { date: '2026-03-07', sales: 750 },
+    { date: '2026-03-08', sales: 820 },
+    { date: '2026-03-09', sales: 1150 },
+    { date: '2026-03-10', sales: 1380 },
+    { date: '2026-03-11', sales: 1200 },
+    { date: '2026-03-12', sales: 980 },
+    { date: '2026-03-13', sales: 860 },
+    { date: '2026-03-14', sales: 1050 },
+    { date: '2026-03-15', sales: 1420 },
+    { date: '2026-03-16', sales: 1580 },
+    { date: '2026-03-17', sales: 1350 },
+    { date: '2026-03-18', sales: 1680 },
+    { date: '2026-03-19', sales: 2100 },
+    { date: '2026-03-20', sales: 2350 },
+    { date: '2026-03-21', sales: 1980 },
+  ],
 };
 
 export const mockPDAHeatmap = {
@@ -1499,34 +1534,276 @@ export const mockPDAHeatmap = {
     { code: 'D3', name: '전문가급 케어' },
   ],
   cells: [
-    // P1 × D1
-    { persona_code: 'P1', persona_name: '피부 입문자', desire_code: 'D1', desire_name: '자연스러운 예쁨', awareness_code: 'unaware', awareness_name: 'Unaware', avg_cpa: 5100, avg_ctr: 0.052, avg_roas: 5.2, total_conversions: 1850, avg_fatigue: 12 },
-    { persona_code: 'P1', persona_name: '피부 입문자', desire_code: 'D1', desire_name: '자연스러운 예쁨', awareness_code: 'problem_aware', awareness_name: 'Problem Aware', avg_cpa: 5800, avg_ctr: 0.048, avg_roas: 4.5, total_conversions: 1420, avg_fatigue: 8 },
-    // P1 × D2
-    { persona_code: 'P1', persona_name: '피부 입문자', desire_code: 'D2', desire_name: '시간 절약 뷰티', awareness_code: 'unaware', awareness_name: 'Unaware', avg_cpa: 7200, avg_ctr: 0.038, avg_roas: 3.1, total_conversions: 580, avg_fatigue: 5 },
-    // P2 × D2
-    { persona_code: 'P2', persona_name: '효율 추구형', desire_code: 'D2', desire_name: '시간 절약 뷰티', awareness_code: 'solution_aware', awareness_name: 'Solution Aware', avg_cpa: 5500, avg_ctr: 0.051, avg_roas: 4.8, total_conversions: 1680, avg_fatigue: 15 },
-    { persona_code: 'P2', persona_name: '효율 추구형', desire_code: 'D2', desire_name: '시간 절약 뷰티', awareness_code: 'product_aware', awareness_name: 'Product Aware', avg_cpa: 4200, avg_ctr: 0.058, avg_roas: 5.8, total_conversions: 2100, avg_fatigue: 22 },
-    // P2 × D1
-    { persona_code: 'P2', persona_name: '효율 추구형', desire_code: 'D1', desire_name: '자연스러운 예쁨', awareness_code: 'problem_aware', awareness_name: 'Problem Aware', avg_cpa: 6800, avg_ctr: 0.042, avg_roas: 3.5, total_conversions: 890, avg_fatigue: 10 },
-    // P3 × D3
-    { persona_code: 'P3', persona_name: '스킨케어 마니아', desire_code: 'D3', desire_name: '전문가급 케어', awareness_code: 'solution_aware', awareness_name: 'Solution Aware', avg_cpa: 6500, avg_ctr: 0.041, avg_roas: 3.8, total_conversions: 1250, avg_fatigue: 11 },
-    { persona_code: 'P3', persona_name: '스킨케어 마니아', desire_code: 'D3', desire_name: '전문가급 케어', awareness_code: 'product_aware', awareness_name: 'Product Aware', avg_cpa: 3800, avg_ctr: 0.062, avg_roas: 6.2, total_conversions: 2450, avg_fatigue: 28 },
+    // P1 × D1 — 인플루언서 2명 평균: (3,027,837+132,126)/2=1,579,982  ENG (2.8+3.1)/2=2.95  LIKE (84,780+4,096)/2=44,438
+    {
+      persona_code: 'P1', desire_code: 'D1',
+      avg_views: 1579982, avg_engagement: 2.95, avg_likes: 44438, contents_count: 2,
+      avg_cpa: 5100, avg_ctr: 0.052, avg_roas: 5.2, total_conversions: 1850, avg_fatigue: 12,
+      top_influencers: [
+        { name: 'sunn416', platform: 'instagram', concept_name: '쌩얼 자신감 챌린지', views: 3027837, engagement_rate: 2.8 },
+        { name: 'leojmakeup', platform: 'instagram', concept_name: '피부 트러블의 진짜 원인', views: 132126, engagement_rate: 3.1 },
+      ],
+      concepts_detail: [
+        { awareness_code: 'A1', concept_name: '쌩얼 자신감 챌린지', views: 3027837, engagement_rate: 2.8, likes: 84780, ctr: 5.2, roas: 5.2, cpa: 5100 },
+        { awareness_code: 'A2', concept_name: '피부 트러블의 진짜 원인', views: 132126, engagement_rate: 3.1, likes: 4096, ctr: 4.8, roas: 4.5, cpa: 5800 },
+      ],
+      insight: '챌린지형 콘텐츠가 입문자에게 높은 참여율. UGC 확산 시 추가 도달 기대.',
+    },
+    // P1 × D2 — 인플루언서 1명: 1,374,203  ENG 1.9  LIKE 26,110
+    {
+      persona_code: 'P1', desire_code: 'D2',
+      avg_views: 1374203, avg_engagement: 1.9, avg_likes: 26110, contents_count: 1,
+      avg_cpa: 7200, avg_ctr: 0.038, avg_roas: 3.1, total_conversions: 580, avg_fatigue: 5,
+      top_influencers: [
+        { name: 's.u.my', platform: 'instagram', concept_name: '3분 클렌징 루틴', views: 1374203, engagement_rate: 1.9 },
+      ],
+      concepts_detail: [
+        { awareness_code: 'A1', concept_name: '3분 클렌징 루틴', views: 1374203, engagement_rate: 1.9, likes: 26110, ctr: 3.8, roas: 3.1, cpa: 7200 },
+      ],
+      insight: '시간 절약 소구가 약한 편. 훅 변경이나 숏폼 포맷 전환 고려.',
+    },
+    // P1 × D3 — 인플루언서 1명: 620,000  ENG 1.8  LIKE 11,160
+    {
+      persona_code: 'P1', desire_code: 'D3',
+      avg_views: 620000, avg_engagement: 1.8, avg_likes: 11160, contents_count: 1,
+      avg_cpa: 8500, avg_ctr: 0.032, avg_roas: 2.4, total_conversions: 320, avg_fatigue: 3,
+      top_influencers: [
+        { name: 'chae._.ullet', platform: 'tiktok', concept_name: '전문가 케어 입문', views: 620000, engagement_rate: 1.8 },
+      ],
+      concepts_detail: [
+        { awareness_code: 'A3', concept_name: '전문가 케어 입문', views: 620000, engagement_rate: 1.8, likes: 11160, ctr: 3.2, roas: 2.4, cpa: 8500 },
+      ],
+      insight: '입문자에게 전문가 케어 소구 약함. 페르소나 재타겟팅 필요.',
+    },
+    // P2 × D1 — 인플루언서 1명: 39,299  ENG 2.6  LIKE 1,022
+    {
+      persona_code: 'P2', desire_code: 'D1',
+      avg_views: 39299, avg_engagement: 2.6, avg_likes: 1022, contents_count: 1,
+      avg_cpa: 6800, avg_ctr: 0.042, avg_roas: 3.5, total_conversions: 890, avg_fatigue: 10,
+      top_influencers: [
+        { name: 'm1ngd.c', platform: 'youtube', concept_name: '성분 비교: 클렌징밤 TOP 5', views: 39299, engagement_rate: 2.6 },
+      ],
+      concepts_detail: [
+        { awareness_code: 'A2', concept_name: '성분 비교: 클렌징밤 TOP 5', views: 39299, engagement_rate: 2.6, likes: 1022, ctr: 4.2, roas: 3.5, cpa: 6800 },
+      ],
+      insight: '효율형 유저 대상 자연스러운 소구 약함. 비교 콘텐츠 강화 고려.',
+    },
+    // P2 × D2 — 인플루언서 3명 평균: (2,216,514+4,700,000+12,742)/3=2,309,752  ENG (4.1+3.8+3.4)/3=3.77  LIKE (90,877+178,600+433)/3=89,970
+    {
+      persona_code: 'P2', desire_code: 'D2',
+      avg_views: 2309752, avg_engagement: 3.77, avg_likes: 89970, contents_count: 3,
+      avg_cpa: 4200, avg_ctr: 0.058, avg_roas: 5.8, total_conversions: 2100, avg_fatigue: 22,
+      top_influencers: [
+        { name: 'Jella젤라', platform: 'youtube', concept_name: '올리브영 1위의 이유', views: 2216514, engagement_rate: 4.1 },
+        { name: 'yunsecho', platform: 'tiktok', concept_name: '퇴근 후 피부 회복기', views: 4700000, engagement_rate: 3.8 },
+        { name: 'HIIZ.beauty', platform: 'youtube', concept_name: '올리브영 1위의 이유', views: 12742, engagement_rate: 3.4 },
+      ],
+      concepts_detail: [
+        { awareness_code: 'A3', concept_name: '올리브영 1위의 이유', views: 1114628, engagement_rate: 3.75, likes: 45655, ctr: 5.8, roas: 5.8, cpa: 4200 },
+        { awareness_code: 'A4', concept_name: '퇴근 후 피부 회복기', views: 4700000, engagement_rate: 3.8, likes: 178600, ctr: 5.1, roas: 4.8, cpa: 5500 },
+      ],
+      insight: '효율 추구형 × 시간 절약 조합이 ENG/ROAS 모두 최고 성과. 리시딩 우선 대상.',
+    },
+    // P2 × D3 — 인플루언서 1명: 1,138,645  ENG 3.7  LIKE 42,130
+    {
+      persona_code: 'P2', desire_code: 'D3',
+      avg_views: 1138645, avg_engagement: 3.7, avg_likes: 42130, contents_count: 1,
+      avg_cpa: 6200, avg_ctr: 0.044, avg_roas: 3.9, total_conversions: 720, avg_fatigue: 8,
+      top_influencers: [
+        { name: 'Spring_butler', platform: 'youtube', concept_name: '피부과 전문의 추천', views: 1138645, engagement_rate: 3.7 },
+      ],
+      concepts_detail: [
+        { awareness_code: 'A3', concept_name: '피부과 전문의 추천', views: 1138645, engagement_rate: 3.7, likes: 42130, ctr: 4.4, roas: 3.9, cpa: 6200 },
+      ],
+      insight: '전문성 소구가 효율 추구형에게 중간 성과. 크리에이터 전문성 강조 강화.',
+    },
+    // P3 × D1 — 인플루언서 2명 평균: (1,467,525+1,374,203)/2=1,420,864  ENG (3.2+1.9)/2=2.55  LIKE (46,961+26,110)/2=36,535
+    {
+      persona_code: 'P3', desire_code: 'D1',
+      avg_views: 1420864, avg_engagement: 2.55, avg_likes: 36535, contents_count: 2,
+      avg_cpa: 5900, avg_ctr: 0.046, avg_roas: 4.1, total_conversions: 1100, avg_fatigue: 14,
+      top_influencers: [
+        { name: 'sseohhyo', platform: 'instagram', concept_name: '자연 광채 스킨케어', views: 1467525, engagement_rate: 3.2 },
+        { name: 's.u.my', platform: 'instagram', concept_name: '자연 광채 스킨케어', views: 1374203, engagement_rate: 1.9 },
+      ],
+      concepts_detail: [
+        { awareness_code: 'A1', concept_name: '자연 광채 스킨케어', views: 1420864, engagement_rate: 2.55, likes: 36535, ctr: 4.6, roas: 4.1, cpa: 5900 },
+      ],
+      insight: '마니아층의 자연스러운 예쁨 소구 안정적 성과. 꾸준한 시딩 유지.',
+    },
+    // P3 × D2 — 인플루언서 1명: 27,687  ENG 2.1  LIKE 581
+    {
+      persona_code: 'P3', desire_code: 'D2',
+      avg_views: 27687, avg_engagement: 2.1, avg_likes: 581, contents_count: 1,
+      avg_cpa: 7800, avg_ctr: 0.035, avg_roas: 2.8, total_conversions: 410, avg_fatigue: 6,
+      top_influencers: [
+        { name: 'kyeol_see', platform: 'youtube', concept_name: '귀차니즘 탈출 클렌징', views: 27687, engagement_rate: 2.1 },
+      ],
+      concepts_detail: [
+        { awareness_code: 'A2', concept_name: '귀차니즘 탈출 클렌징', views: 27687, engagement_rate: 2.1, likes: 581, ctr: 3.5, roas: 2.8, cpa: 7800 },
+      ],
+      insight: '마니아층에게 시간 절약 소구 약함. 타겟 불일치 가능성.',
+    },
+    // P3 × D3 — 인플루언서 3명 평균: (5,701,257+1,300,000+2,700,000)/3=3,233,752  ENG (5.2+4.3+3.5)/3=4.33  LIKE (296,465+55,900+94,500)/3=148,955
+    {
+      persona_code: 'P3', desire_code: 'D3',
+      avg_views: 3233752, avg_engagement: 4.33, avg_likes: 148955, contents_count: 3,
+      avg_cpa: 3800, avg_ctr: 0.062, avg_roas: 6.2, total_conversions: 2450, avg_fatigue: 28,
+      top_influencers: [
+        { name: '스타템픽', platform: 'youtube', concept_name: '피부과 전문의 추천', views: 5701257, engagement_rate: 5.2 },
+        { name: 'hwane_online', platform: 'tiktok', concept_name: '성분 딥다이브 리뷰', views: 1300000, engagement_rate: 4.3 },
+        { name: 'ramnuggi', platform: 'tiktok', concept_name: '피부과 전문의 추천', views: 2700000, engagement_rate: 3.5 },
+      ],
+      concepts_detail: [
+        { awareness_code: 'A3', concept_name: '피부과 전문의 추천', views: 4200629, engagement_rate: 4.35, likes: 195483, ctr: 6.2, roas: 6.2, cpa: 3800 },
+        { awareness_code: 'A4', concept_name: '성분 딥다이브 리뷰', views: 1300000, engagement_rate: 4.3, likes: 55900, ctr: 5.8, roas: 5.5, cpa: 4100 },
+      ],
+      insight: '스킨케어 마니아 × 전문가급 케어가 전체 1위. 전문 크리에이터 중심 확대 추천.',
+    },
   ],
 };
 
 export const mockFatigueReport = {
   items: [
-    { id: 1, concept_name: '쌩얼 자신감 챌린지', fatigue_score: 12, current_ctr: 0.052, trend: 'stable' },
-    { id: 2, concept_name: '피부 트러블의 진짜 원인', fatigue_score: 8, current_ctr: 0.048, trend: 'stable' },
-    { id: 3, concept_name: '3분 클렌징 루틴', fatigue_score: 35, current_ctr: 0.044, trend: 'declining' },
-    { id: 4, concept_name: '올리브영 1위의 이유', fatigue_score: 62, current_ctr: 0.035, trend: 'declining' },
-    { id: 5, concept_name: '성분 비교: 클렌징밤 TOP 5', fatigue_score: 11, current_ctr: 0.041, trend: 'growing' },
-    { id: 6, concept_name: '피부과 전문의 추천', fatigue_score: 5, current_ctr: 0.062, trend: 'growing' },
-    { id: 7, concept_name: '귀차니즘 탈출 클렌징', fatigue_score: 0, current_ctr: null, trend: 'new' },
-    { id: 8, concept_name: '퇴근 후 피부 회복기', fatigue_score: 28, current_ctr: 0.042, trend: 'stable' },
+    { id: 1, concept_name: '쌩얼 자신감 챌린지', fatigue_score: 12, current_ctr: 0.052, trend: 'stable',
+      influencers: [
+        { name: 'sunn416', platform: 'instagram', views: 3027837 },
+        { name: 'leojmakeup', platform: 'instagram', views: 132126 },
+      ] },
+    { id: 2, concept_name: '피부 트러블의 진짜 원인', fatigue_score: 8, current_ctr: 0.048, trend: 'stable',
+      influencers: [
+        { name: 'just_Leemijoo', platform: 'youtube', views: 400002 },
+      ] },
+    { id: 3, concept_name: '3분 클렌징 루틴', fatigue_score: 35, current_ctr: 0.044, trend: 'declining',
+      influencers: [
+        { name: 'HIIZ.beauty', platform: 'youtube', views: 12742 },
+        { name: 'kyeol_see', platform: 'youtube', views: 27687 },
+      ] },
+    { id: 4, concept_name: '올리브영 1위의 이유', fatigue_score: 62, current_ctr: 0.035, trend: 'declining',
+      influencers: [
+        { name: 'sseohhyo', platform: 'instagram', views: 1467525 },
+        { name: 's.u.my', platform: 'instagram', views: 1374203 },
+      ] },
+    { id: 5, concept_name: '성분 비교: 클렌징밤 TOP 5', fatigue_score: 11, current_ctr: 0.041, trend: 'growing',
+      influencers: [
+        { name: 'Jella젤라', platform: 'youtube', views: 2216514 },
+      ] },
+    { id: 6, concept_name: '피부과 전문의 추천', fatigue_score: 5, current_ctr: 0.062, trend: 'growing',
+      influencers: [
+        { name: '스타템픽', platform: 'youtube', views: 5701257 },
+        { name: 'ramnuggi', platform: 'tiktok', views: 2700000 },
+      ] },
+    { id: 7, concept_name: '귀차니즘 탈출 클렌징', fatigue_score: 0, current_ctr: null, trend: 'new',
+      influencers: [
+        { name: 'hwane_online', platform: 'tiktok', views: 1300000 },
+      ] },
+    { id: 8, concept_name: '퇴근 후 피부 회복기', fatigue_score: 28, current_ctr: 0.042, trend: 'stable',
+      influencers: [
+        { name: 'm1ngd.c', platform: 'youtube', views: 39299 },
+        { name: 'yunsecho', platform: 'tiktok', views: 4700000 },
+      ] },
   ],
 };
+
+// ============================================
+// 초기 신호 감지 목데이터
+// ============================================
+export const mockEarlySignals = [
+  {
+    signal_type: 'hook_ranking',
+    rank_data: [
+      { entity_id: 'h1', rank: 1, entity_name: '쌩얼 자신감 챌린지 - 3초 후 반전', value: 4.8, change_pct: 12.3, alert_level: 'good' },
+      { entity_id: 'h2', rank: 2, entity_name: '피부과 전문의가 추천하는 클렌징', value: 3.9, change_pct: 8.1, alert_level: 'good' },
+      { entity_id: 'h3', rank: 3, entity_name: '올영 1위 이유 있었네', value: 3.5, change_pct: -2.4, alert_level: 'normal' },
+      { entity_id: 'h4', rank: 4, entity_name: '성분 비교: 클렌징밤 TOP 5', value: 3.1, change_pct: 5.6, alert_level: 'normal' },
+      { entity_id: 'h5', rank: 5, entity_name: '10년차 여드름 피부의 세수법', value: 2.8, change_pct: -8.2, alert_level: 'warning' },
+      { entity_id: 'h6', rank: 6, entity_name: '3분 클렌징 루틴 공개', value: 2.4, change_pct: 1.5, alert_level: 'normal' },
+      { entity_id: 'h7', rank: 7, entity_name: '귀차니즘 탈출 클렌징 꿀팁', value: 2.1, change_pct: 15.8, alert_level: 'good' },
+    ],
+  },
+  {
+    signal_type: 'channel_ranking',
+    rank_data: [
+      { entity_id: 'c1', rank: 1, entity_name: 'Instagram Reels', value: 4.2, change_pct: 6.5, alert_level: 'good' },
+      { entity_id: 'c2', rank: 2, entity_name: 'TikTok', value: 3.8, change_pct: 11.2, alert_level: 'good' },
+      { entity_id: 'c3', rank: 3, entity_name: 'YouTube Shorts', value: 2.9, change_pct: -3.1, alert_level: 'normal' },
+    ],
+  },
+  {
+    signal_type: 'anomaly',
+    anomalies: [
+      { metric: '올리브영 1위의 이유', severity: 'high', message: '조회수와 참여율 모두 그룹 평균 대비 크게 낮습니다. 콘텐츠 교체를 권장합니다.', expected: '참여율 3.7%  ·  VIEW 45,200', actual: '참여율 0.9%  ·  VIEW 8,200', eng_deviation: -75.7, view_deviation: -81.9, performance_score: -2.8, view_z: -2.1, eng_z: -1.9, channel: 'Instagram Reels', views: 8200 },
+      { metric: '3분 클렌징 루틴 공개', severity: 'medium', message: '참여율이 그룹 평균 대비 부진합니다. 훅/CTA 교체를 검토하세요.', expected: '참여율 3.7%  ·  VIEW 45,200', actual: '참여율 1.8%  ·  VIEW 27,600', eng_deviation: -51.4, view_deviation: -38.9, performance_score: -1.7, view_z: -0.6, eng_z: -2.1, channel: 'YouTube Shorts', views: 27600 },
+      { metric: '10년차 여드름 피부의 세수법', severity: 'low', message: '조회수가 그룹 평균 대비 부진합니다. 채널/타겟 재검토가 필요합니다.', expected: '참여율 3.7%  ·  VIEW 45,200', actual: '참여율 2.4%  ·  VIEW 15,400', eng_deviation: -35.1, view_deviation: -65.9, performance_score: -1.2, view_z: -1.5, eng_z: -0.4, channel: 'TikTok', views: 15400 },
+    ],
+  },
+];
+
+// ============================================
+// 실시간 최적화 목데이터
+// ============================================
+export const mockOptimizationActions = [
+  {
+    action_id: 'opt-1',
+    action_type: 'creative_rotation',
+    status: 'pending',
+    recommendation: {
+      priority: 'high',
+      replace: {
+        creative_name: '올리브영 1위의 이유',
+        reason: 'CTR 2.1% — 평균 대비 45% 낮음 + 피로도 62',
+        current_ctr: 2.1,
+        channel: 'Instagram Reels',
+        follower_size: 'micro',
+      },
+      with: {
+        hook_text: '쌩얼 자신감 챌린지 - 반전 메이크업',
+        hook_type: 'top_performer',
+        predicted_ctr: 4.4,
+        reference_group: 'Instagram Reels × micro',
+        q3_avg_ctr: 5.2,
+        discount_factor: 0.85,
+        group_size: 8,
+      },
+    },
+  },
+  {
+    action_id: 'opt-2',
+    action_type: 'creative_rotation',
+    status: 'pending',
+    recommendation: {
+      priority: 'medium',
+      replace: {
+        creative_name: '3분 클렌징 루틴',
+        reason: 'CTR 3.1% — 피로도 35 (주의 단계)',
+        current_ctr: 3.1,
+        channel: 'YouTube Shorts',
+        follower_size: 'micro',
+      },
+      with: {
+        hook_text: '귀차니즘 탈출 클렌징 꿀팁',
+        hook_type: 'top_performer',
+        predicted_ctr: 3.8,
+        reference_group: 'YouTube Shorts × micro',
+        q3_avg_ctr: 4.5,
+        discount_factor: 0.85,
+        group_size: 5,
+      },
+    },
+  },
+  {
+    action_id: 'opt-3',
+    action_type: 'channel_rebalance',
+    status: 'pending',
+    recommendation: {
+      channels: [
+        { channel: 'Instagram Reels', current_pct: 45, recommended_pct: 38, roi_score: 4.2, reason: '성과 안정적, 소폭 축소' },
+        { channel: 'TikTok', current_pct: 27, recommended_pct: 38, roi_score: 3.8, reason: '인게이지먼트 급등, 투자 확대' },
+        { channel: 'YouTube Shorts', current_pct: 28, recommended_pct: 24, roi_score: 2.9, reason: '현상 유지' },
+      ],
+    },
+  },
+];
 
 // ============================================
 // 쉬어 벨벳 베일 틴트 — 성과 모니터링 목데이터

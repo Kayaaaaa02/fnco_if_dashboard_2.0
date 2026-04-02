@@ -2,9 +2,32 @@ import { pool } from '../config/database.js';
 import { selectMetrics, selectPDAHeatmap, selectFatigueReport, selectMetricsSummary } from '../sql/monitor/selectQuery.js';
 import { insertBulkMetrics } from '../sql/monitor/insertQuery.js';
 
+// Auto-migrate: comments, shares 컬럼 추가 (없으면)
+let migrated = false;
+async function ensureColumns() {
+  if (migrated) return;
+  try {
+    await pool.query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dw_performance_metric' AND column_name='comments' AND table_schema='fnco_influencer') THEN
+          ALTER TABLE fnco_influencer.dw_performance_metric ADD COLUMN comments INTEGER DEFAULT 0;
+        END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='dw_performance_metric' AND column_name='shares' AND table_schema='fnco_influencer') THEN
+          ALTER TABLE fnco_influencer.dw_performance_metric ADD COLUMN shares INTEGER DEFAULT 0;
+        END IF;
+      END $$;
+    `);
+    migrated = true;
+  } catch (e) {
+    console.warn('[Monitor] 컬럼 마이그레이션 실패 (무시):', e.message);
+    migrated = true;
+  }
+}
+
 // 모니터링 대시보드 조회 (요약 + 최근 지표)
 export const getMonitorDashboard = async (req, res) => {
     try {
+        await ensureColumns();
         const campaignId = req.params.id;
 
         if (!campaignId) {
@@ -148,19 +171,28 @@ export const generateMockMetrics = async (req, res) => {
                 // 오래된 날짜일수록 피로도 높음
                 const baseFatigue = Math.floor((day / 7) * 30);
 
-                // 새 KPI 기준: 평균 조회수 ~116K-140K, 인게이지먼트율 ~2-3%, 평균 좋아요 ~845-1014, 컨텐츠 수 ~2-4
+                // KPI: 조회수 ~100K-140K, 좋아요 ~700-1100, 댓글 ~50-200, 공유 ~20-80
+                const likes = Math.floor(Math.random() * 400) + 700;
+                const comments = Math.floor(Math.random() * 150) + 50;
+                const shares = Math.floor(Math.random() * 60) + 20;
+                const views = Math.floor(Math.random() * 40000) + 100000;
+                // 인게이지먼트율 = (좋아요+댓글+공유) / 조회수 × 100
+                const engRate = parseFloat(((likes + comments + shares) / views * 100).toFixed(2));
+
                 metrics.push({
                     creative_id: creative.creative_id,
                     concept_id: creative.concept_id,
                     date: dateStr,
-                    impressions: Math.floor(Math.random() * 40000) + 100000,        // 조회수: 100K~140K
-                    reach: Math.floor(Math.random() * 30000) + 50000,               // reach
-                    clicks: Math.floor(Math.random() * 400) + 700,                  // 좋아요 수: 700~1100
-                    ctr: parseFloat((Math.random() * 1.5 + 1.8).toFixed(2)),        // 인게이지먼트율: 1.8~3.3%
-                    cpa: parseFloat((Math.random() * 2000 + 500).toFixed(0)),       // cpa (unused)
-                    roas: parseFloat((Math.random() * 5.0 + 1.0).toFixed(2)),       // roas (unused)
-                    engaged_views: Math.floor(Math.random() * 15000) + 5000,        // engaged_views
-                    conversions: Math.floor(Math.random() * 3) + 2,                 // 컨텐츠 수: 2~4건
+                    impressions: views,
+                    reach: Math.floor(Math.random() * 30000) + 50000,
+                    clicks: likes,
+                    comments,
+                    shares,
+                    ctr: engRate,                                                    // 인게이지먼트율 (계산값)
+                    cpa: parseFloat((Math.random() * 2000 + 500).toFixed(0)),
+                    roas: parseFloat((Math.random() * 5.0 + 1.0).toFixed(2)),
+                    engaged_views: Math.floor(Math.random() * 15000) + 5000,
+                    conversions: Math.floor(Math.random() * 3) + 2,
                     fatigue_score: Math.floor(Math.random() * 10) + baseFatigue,
                 });
             }

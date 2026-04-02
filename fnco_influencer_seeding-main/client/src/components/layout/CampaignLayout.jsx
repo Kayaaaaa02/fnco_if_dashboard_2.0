@@ -148,7 +148,7 @@ export default function CampaignLayout() {
       </div>
 
       {/* Phase Content */}
-      <div className="flex-1 overflow-auto" style={{ padding: '28px 32px' }}>
+      <div className="flex-1 overflow-auto" style={{ padding: '28px 32px', background: '#ffffff' }}>
         <Outlet context={{ campaign, isLoading }} />
       </div>
     </div>
